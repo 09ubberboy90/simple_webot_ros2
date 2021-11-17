@@ -1,0 +1,18 @@
+#VRML_OBJ R2021a utf8
+Solid {
+  translation 0 0 0
+  rotation 0 0 0 0
+  scale 0.5 0.5 0.5
+  children [
+    TexturedBoxShape {
+      textureMapping "cube"
+    }
+  ]
+  boundingObject Box {
+    size 0.1 0.1 0.1
+  }
+  physics Physics {
+  }
+  linearVelocity 6.817401414703672e-12 -1.924145952620986e-11 9.419695899472323e-09
+  angularVelocity 3.1784628097470814e-10 2.726963991212881e-10 8.408117087935095e-16
+}

@@ -1,0 +1,21 @@
+#VRML_OBJ R2021a utf8
+Solid {
+  translation 0.47 0 0.0534245
+  rotation -0.9999999999999999 0 0 4.3023133312885194e-14
+  scale 0.3 0.3 0.3
+  children [
+    Shape {
+      appearance BakelitePlastic {
+      }
+      geometry Sphere {
+        radius 0.1
+      }
+    }
+  ]
+  name "Sphere"
+  boundingObject Sphere {
+    radius 0.1
+  }
+  physics Physics {
+  }
+}
