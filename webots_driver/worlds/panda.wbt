@@ -1,0 +1,43 @@
+#VRML_SIM R2020b utf8
+WorldInfo {
+  info [
+    "Simple Franka Panda robot simulation"
+  ]
+  title "VrController"
+  basicTimeStep 32
+  physicsDisableAngularThreshold 0.1
+  optimalThreadCount 10
+  contactProperties [
+    ContactProperties {
+      bounce 0.1
+    }
+    ContactProperties {
+      material1 "slope"
+      coulombFriction [
+        0.5
+      ]
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.9893476279464157 -0.10105298061325689 -0.10478342514910063 5.247497801206134
+  position 0.499916493770898 -1.1319304242812065 1.4006158802650017
+  exposure 1.7
+}
+TexturedBackground {
+  texture "factory"
+}
+Floor {
+  rotation 1 0 0 1.5707963267948966
+  size 20 20
+  appearance ThreadMetalPlate {
+  }
+}
+DEF SPAWNER Robot {
+  name "spawner"
+  controller "<extern>"
+  supervisor TRUE
+  synchronization FALSE
+  
+}
+

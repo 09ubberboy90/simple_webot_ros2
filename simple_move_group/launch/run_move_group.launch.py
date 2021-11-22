@@ -42,7 +42,7 @@ def generate_launch_description():
     robot_description = {"robot_description": robot_description_config.toxml()}
 
     robot_description_semantic_config = load_file(
-        "moveit_resources_panda_moveit_config", "config/panda.srdf"
+        "webots_simple_arm", "config/panda.srdf"
     )
     robot_description_semantic = {
         "robot_description_semantic": robot_description_semantic_config
@@ -68,7 +68,7 @@ def generate_launch_description():
 
     # Trajectory Execution Functionality
     moveit_simple_controllers_yaml = load_yaml(
-        "moveit_resources_panda_moveit_config", "config/panda_controllers.yaml"
+        "webots_simple_arm", "config/panda_controllers.yaml"
     )
     moveit_controllers = {
         "moveit_simple_controller_manager": moveit_simple_controllers_yaml,
@@ -88,6 +88,7 @@ def generate_launch_description():
         "publish_state_updates": True,
         "publish_transforms_updates": True,
     }
+    sim_time = {'use_sim_time': False}
 
     # Start the actual move_group node/action server
     run_move_group_node = Node(
@@ -102,6 +103,8 @@ def generate_launch_description():
             trajectory_execution,
             moveit_controllers,
             planning_scene_monitor_parameters,
+            sim_time,
+            {"debug_mode":False}
         ],
     )
 
@@ -120,6 +123,7 @@ def generate_launch_description():
             robot_description_semantic,
             ompl_planning_pipeline_config,
             kinematics_yaml,
+            sim_time
         ],
     )
 
@@ -138,15 +142,16 @@ def generate_launch_description():
         executable="robot_state_publisher",
         name="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
-    )
-
+        parameters=[robot_description, sim_time],
+    )    
     # ros2_control using FakeSystem as hardware
     ros2_controllers_path = os.path.join(
-        get_package_share_directory("moveit_resources_panda_moveit_config"),
+        get_package_share_directory("webots_driver"),
         "config",
         "panda_ros_controllers.yaml",
     )
+
+
     ros2_control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -166,7 +171,7 @@ def generate_launch_description():
     ]:
         load_controllers += [
             ExecuteProcess(
-                cmd=["ros2 run controller_manager spawner.py {}".format(controller)],
+                cmd=["ros2 control load_start_controller {}".format(controller)],
                 shell=True,
                 output="screen",
             )
@@ -188,10 +193,7 @@ def generate_launch_description():
         [
             rviz_node,
             static_tf,
-            robot_state_publisher,
             run_move_group_node,
-            ros2_control_node,
             mongodb_server_node,
-        ]
-        + load_controllers
+        ] + load_controllers
     )

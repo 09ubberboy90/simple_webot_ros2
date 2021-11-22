@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+    <xacro:arg name="initial_positions_file" default="$(find webots_driver)/config/initial_positions.yaml" />
+
+    <!-- Import panda urdf file -->
+    <xacro:include filename="panda.urdf" />
+    <xacro:include filename="panda.ros2_control.xacro" />
+    <xacro:include filename="panda_hand.ros2_control.xacro" />
+
+    <xacro:panda_ros2_control name="PandaWebotsControl" initial_positions_file="$(arg initial_positions_file)"/>
+    <xacro:panda_hand_ros2_control name="PandaHandWebotsControl"/>
+
+    <webots>
+        <plugin type="webots_driver.panda_driver.PandaDriver">
+            <parameterExample>someValue</parameterExample>
+        </plugin>
+        <plugin type="webots_ros2_control::Ros2Control" />
+
+    </webots>
+    <link name="world"/>
+    <joint name="panda_to_world" type="fixed">
+        <parent link="world"/>
+        <child link="panda_link0"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <dynamics damping="1.0"/>
+    </joint>
+</robot>
