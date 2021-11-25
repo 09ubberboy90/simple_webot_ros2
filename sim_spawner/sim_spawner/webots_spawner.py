@@ -2,20 +2,12 @@ import rclpy
 import os
 import sys
 from webots_ros2_core.webots_node import WebotsNode
-from webots_ros2_core.utils import append_webots_python_lib_to_path
-from webots_ros2_core.trajectory_follower import TrajectoryFollower
-from sensor_msgs.msg import JointState
+
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import GetEntityState, GetModelList
 from gazebo_msgs.msg import EntityState
 import pyquaternion 
-try:
-    append_webots_python_lib_to_path()
-    from controller import Node
-except Exception as e:
-    sys.stderr.write('"WEBOTS_HOME" is not correctly set.')
-    raise e
 
 
 class SpawnerNode(WebotsNode):
@@ -29,7 +21,7 @@ class SpawnerNode(WebotsNode):
         self.model = self.create_service(
             GetModelList, 'get_model_list', self.get_model_list)
         self.objs = {}
-        self.robot.simulationSetMode(self.robot.SIMULATION_MODE_FAST)
+        # self.robot.simulationSetMode(self.robot.SIMULATION_MODE_FAST)
         self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57])
         self.spawn_obj("worlds/Cube.wbo", position = [0.3-0.6, 0, 0.55])
         # for x in range(-4, 5):

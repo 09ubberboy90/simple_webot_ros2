@@ -34,15 +34,15 @@ def generate_launch_description():
     # planning_context
     robot_description_config = xacro.process_file(
         os.path.join(
-            get_package_share_directory("moveit_resources_panda_moveit_config"),
-            "config",
-            "panda.urdf.xacro",
+            get_package_share_directory("webots_driver"),
+            "urdf",
+            "panda_webots.urdf.xacro",
         )
     )
     robot_description = {"robot_description": robot_description_config.toxml()}
 
     robot_description_semantic_config = load_file(
-        "webots_simple_arm", "config/panda.srdf"
+        "webots_driver", "config/panda.srdf"
     )
     robot_description_semantic = {
         "robot_description_semantic": robot_description_semantic_config
@@ -68,7 +68,7 @@ def generate_launch_description():
 
     # Trajectory Execution Functionality
     moveit_simple_controllers_yaml = load_yaml(
-        "webots_simple_arm", "config/panda_controllers.yaml"
+        "webots_driver", "config/panda_controllers.yaml"
     )
     moveit_controllers = {
         "moveit_simple_controller_manager": moveit_simple_controllers_yaml,
@@ -133,7 +133,7 @@ def generate_launch_description():
         executable="static_transform_publisher",
         name="static_transform_publisher",
         output="log",
-        arguments=["0.0", "0.0", "0.0", "0.0", "0.0", "0.0", "world", "panda_link0"],
+        arguments=["0.0", "0.0", "0.0", "0.0", "0.0", "0.0", "world", "base_link"],
     )
 
     # Publish TF
