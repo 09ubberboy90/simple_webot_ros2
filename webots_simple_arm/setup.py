@@ -9,21 +9,12 @@ from setuptools import setup
 package_name = 'webots_simple_arm'
 worlds = glob('worlds/*.wbt')
 worlds.extend(glob("worlds/*.wbo"))
-launchers = [
-    'launch/panda.launch.py',
-    'launch/panda_trajectory.launch.py',
-    'launch/moveit_webots.launch.py',
-    'launch/throw_moveit.launch.py',
-    'launch/throw_collision.launch.py',
-    'launch/collision_webots.launch.py',
-    'launch/pick_place.launch.py',
-    'launch/vr_webots.launch.py',
-]
+launchers = glob('launch/*.launch.py')
 
 data_files = []
 data_files.append(('share/ament_index/resource_index/packages', ['resource/' + package_name]))
 data_files.append(('share/' + package_name+ "/launch", launchers))
-data_files.append(('share/' + package_name+ "/config", ["config/move_group.rviz"]))
+data_files.append(('share/' + package_name+ "/config", glob('config/*.*')))
 data_files.append(('share/' + package_name + '/worlds', worlds))
 data_files.append(('share/' + package_name, ['package.xml']))
 data_files.append(('share/' + package_name +'/protos', ['protos/panda.proto']))
@@ -42,7 +33,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'panda_controller = webots_simple_arm.panda:main',
+            'panda_controller = webots_simple_arm.moveit2:main',
             'panda_trajectory = webots_simple_arm.panda_trajectory:main',
         ],
     }

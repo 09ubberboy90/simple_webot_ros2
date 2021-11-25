@@ -17,27 +17,43 @@
 """Launch Webots and the controller."""
 
 import os
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+import launch
 from launch import LaunchDescription
+from launch.actions import RegisterEventHandler, EmitEvent
+from webots_ros2_core.utils import ControllerLauncher
+from webots_ros2_core.webots_launcher import WebotsLauncher
 from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
     package_dir = get_package_share_directory('webots_simple_arm')
 
-    webots = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('webots_ros2_core'), 'launch', 'robot_launch.py')
-        ),
-        launch_arguments={
-            "package":"webots_simple_arm",
-            'executable': 'panda_trajectory',
-            'world': os.path.join(package_dir, 'worlds', 'panda.wbt'),
-            "publish_tf":"False",
+    webots = WebotsLauncher(
+        world=os.path.join(package_dir, 'worlds', 'panda.wbt'),
+        mode="realtime",
+        gui="True"
+    )
 
-        }.items()
+    # Driver node
+    controller = ControllerLauncher(
+        package="webots_simple_arm",
+        executable="panda_trajectory",
+        ## If you give it no matter the value it will be interpreted as TRUE
+        # parameters=[
+        #     {
+        #         'use_joint_state_publisher': "False",
+
+        #     }],
+        output='screen',
+        arguments=[
+            '--webots-robot-name', "panda",
+        ],
     )
     return LaunchDescription([
-        webots
-    ])
+        webots,controller,
+        RegisterEventHandler(
+            event_handler=launch.event_handlers.OnProcessExit(
+                target_action=webots,
+                on_exit=[EmitEvent(event=launch.events.Shutdown())],
+            )
+        )    ])

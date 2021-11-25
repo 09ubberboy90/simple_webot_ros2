@@ -3,6 +3,7 @@ import yaml
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+from webots_ros2_core.utils import get_webots_home, handle_webots_installation
 
 
 def load_file(package_name, file_path):
@@ -28,6 +29,11 @@ def load_yaml(package_name, file_path):
 
 
 def generate_launch_description():
+    webots_path = get_webots_home(show_warning=True)
+    if webots_path is None:
+        handle_webots_installation()
+        webots_path = get_webots_home()
+
     # planning_context
     robot_description_config = load_file('moveit_resources_panda_description', 'urdf/panda.urdf')
     robot_description = {'robot_description': robot_description_config}
@@ -51,6 +57,8 @@ def generate_launch_description():
                                         robot_description_semantic,
                                         kinematics_yaml,
                                         {"use_spawn_obj": True},
-                                        {"gazebo": False}])
+                                        {"gazebo": False}, {"use_sim_time":False},],
+                            # prefix=['gdbserver localhost:3000'],
+                            )
 
     return LaunchDescription([webots_spawner, moveit_collision])
