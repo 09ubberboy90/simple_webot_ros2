@@ -21,24 +21,18 @@
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>joint_trajectory_controller</exec_depend>
-  <exec_depend>joy</exec_depend>
   <exec_depend>moveit</exec_depend>
   <exec_depend>moveit_resources_panda_moveit_config</exec_depend>
   <exec_depend>control_msgs</exec_depend>
   <exec_depend>sim_action_server</exec_depend>
-  <exec_depend>gazebo_ros2_control</exec_depend>
-  <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>hardware_interface</exec_depend>
   <exec_depend>joint_state_controller</exec_depend>
-  <exec_depend>launch</exec_depend>
-  <exec_depend>launch_ros</exec_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>transmission_interface</exec_depend>
-  <exec_depend>velocity_controllers</exec_depend>
   <exec_depend>xacro</exec_depend>
-
+  <exec_depend>gazebo_msgs</exec_depend>
+  <depend>backward_ros</depend>
+  
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

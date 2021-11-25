@@ -29,6 +29,7 @@
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "moveit.hpp"
+#include <map>
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -57,10 +58,10 @@ void result_handler(std::shared_ptr<rclcpp::Node> node, std::shared_future<std::
     poses->poses.push_back(result.get()->state.pose);
 }
 
-class GetParam : public rclcpp::Node
+class ServiceServer
 {
 public:
-    GetParam() : Node("get_global_param")
+    ServiceServer()
     {
         subscription_ = this->create_subscription<std_msgs::msg::Bool>("stop_updating_obj", 10, std::bind(&GetParam::topic_callback, this, _1));
     };
@@ -82,18 +83,17 @@ int main(int argc, char **argv)
 {
 
     rclcpp::init(argc, argv);
-
+    std::map<int, double        > obj_height = {};
     rclcpp::NodeOptions node_options;
     node_options.automatically_declare_parameters_from_overrides(true);
     auto move_group_node = rclcpp::Node::make_shared("moveit_collision", node_options);
-    auto parameter_server = std::make_shared<GetParam>();
     auto service_node = rclcpp::Node::make_shared("service_handler");
     // For current state monitor
-    rclcpp::executors::MultiThreadedExecutor executor;
+    rclcpp::executors::SingleThreadedExecutor executor;
     executor.add_node(move_group_node);
-    executor.add_node(parameter_server);
     std::thread([&executor]() { executor.spin(); }).detach();
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface("");
+
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     bool gazebo;
     if (!move_group_node->get_parameter("gazebo", gazebo))
     {
@@ -121,57 +121,66 @@ int main(int argc, char **argv)
         {
 
             geometry_msgs::msg::PoseArray poses;
-            std::vector<moveit_msgs::msg::CollisionObject> collision_object;
+            std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
             service_caller<gazebo_msgs::srv::GetModelList>(service_node, "get_model_list", &poses);
-            for (int i = 0; i < poses.poses.size(); i++)
+            for (int i = 0; i < (int) poses.poses.size(); i++)
             {
+                
                 moveit_msgs::msg::CollisionObject obj;
                 auto pose = poses.poses[i];
                 obj.header.frame_id = "world";
                 obj.id = "Box" + i;
                 shape_msgs::msg::SolidPrimitive primitive;
-                primitive.type = primitive.BOX;
-                primitive.dimensions.resize(3);
-                obj.operation = obj.ADD;
-                if (i == 0 && !thrower) // table
+                double height = 0.0;
+                if (obj_height.count(i) > 0)
                 {
-                    primitive.dimensions[0] = 0.92;
-                    if (gazebo)
-                    {
-                        primitive.dimensions[2] = 0.58;
-                        primitive.dimensions[1] = 0.92;
-                    }
-                    else
-                    {
-                        primitive.dimensions[1] = 0.5;
-                        primitive.dimensions[2] = 0.914;
-                    }
-                    pose.position.z += primitive.dimensions[1] / 2;
-                    
-                    
+                    obj.operation = obj.MOVE;
+                    height = obj_height[i];
                 }
-                else // cube
+                else
                 {
-                    printf("%i\n", i);
-                    primitive.dimensions[0] = 0.05;
-                    primitive.dimensions[1] = 0.05;
-                    primitive.dimensions[2] = 0.05;
-                    // pose.position.z += primitive.dimensions[1] / 2;
+                    obj.operation = obj.ADD;
+                    primitive.type = primitive.BOX;
+                    primitive.dimensions.resize(3);
+                    if (i == 0 && !thrower) // table
+                    {
+                        primitive.dimensions[0] = 0.92;
+                        if (gazebo)
+                        {
+                            primitive.dimensions[2] = 0.58;
+                            primitive.dimensions[1] = 0.92;
+                        }
+                        else
+                        {
+                            primitive.dimensions[1] = 0.5;
+                            primitive.dimensions[2] = 0.914;
+                        }
+                        height = primitive.dimensions[1]; // reason is that rviz uses center of mass while webots table uses bottom position
+                        
+                        
+                    }
+                    else // cube
+                    {
+                        primitive.dimensions[0] = 0.05;
+                        primitive.dimensions[1] = 0.05;
+                        primitive.dimensions[2] = 0.05;
+                        // pose.position.z += primitive.dimensions[1] / 2;
+                        height = 0;
+                    }
+                    obj.primitives.push_back(primitive);
                 }
+                pose.position.z += height / 2;
+                
                 if (i == 1)
                 {
                     obj.id = "target";
-                    if (parameter_server->get_param())
-                    {
-                        continue;
-                    }
                 }
 
-                obj.primitives.push_back(primitive);
                 obj.primitive_poses.push_back(pose);
-                collision_object.push_back(obj);
+                collision_objects.push_back(obj);
+                obj_height[i] = height;
             }
-            planning_scene_interface.applyCollisionObjects(collision_object);
+            planning_scene_interface.applyCollisionObjects(collision_objects);
             //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Add an object into the world");
         }
     }

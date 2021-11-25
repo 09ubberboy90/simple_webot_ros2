@@ -44,6 +44,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
@@ -52,7 +53,6 @@
 #include "std_msgs/msg/bool.hpp"
 
 #include "control_msgs/action/follow_joint_trajectory.hpp"
-#include "sim_action_server.hpp"
 
 #include "gazebo_msgs/srv/get_entity_state.hpp"
 #include "gazebo_msgs/srv/get_model_list.hpp"
@@ -67,10 +67,10 @@ void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared
 
 
 template <typename MessageType>
-void service_caller(std::shared_ptr<rclcpp::Node>, std::string, geometry_msgs::msg::PoseArray *, std::string arg="");
+int service_caller(std::shared_ptr<rclcpp::Node>, std::string, geometry_msgs::msg::PoseArray *, std::string arg="");
 
 template <typename MessageType>
-void service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, geometry_msgs::msg::PoseArray *poses, std::string arg)
+int service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, geometry_msgs::msg::PoseArray *poses, std::string arg)
 {
     typename rclcpp::Client<MessageType>::SharedPtr model_list_cl =
         node->create_client<MessageType>(srv_name);
@@ -86,8 +86,10 @@ void service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, ge
         if (!rclcpp::ok())
         {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
+            return 0;
         }
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     auto result = model_list_cl->async_send_request(request);
@@ -100,6 +102,9 @@ void service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, ge
     else
     {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service");
+        return 0;
     }
+    return 1;
+
 }
 
