@@ -17,14 +17,13 @@ endif()
 set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ament_cmake REQUIRED)
-find_package(control_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclcpp_action REQUIRED)
-find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
-find_package(sim_action_server REQUIRED)
 find_package(gazebo_msgs REQUIRED)
+find_package(backward_ros REQUIRED)
+
+
 install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
@@ -33,30 +32,26 @@ include_directories(include)
 add_executable(moveit_controller src/moveit_controller.cpp include/moveit.hpp)
 ament_target_dependencies(moveit_controller
   rclcpp
-  rclcpp_action
-  control_msgs
   moveit_ros_planning_interface
-  sim_action_server
+  std_srvs
   gazebo_msgs
 )
-add_executable(throw_moveit src/throw_moveit.cpp include/moveit.hpp)
-ament_target_dependencies(throw_moveit
-  rclcpp
-  rclcpp_action
-  control_msgs
-  moveit_ros_planning_interface
-  sim_action_server
-  gazebo_msgs
-)
+# add_executable(throw_moveit src/throw_moveit.cpp include/moveit.hpp)
+# ament_target_dependencies(throw_moveit
+#   rclcpp
+#   rclcpp_action
+#   control_msgs
+#   moveit_ros_planning_interface
+#   sim_action_server
+# )
+add_compile_options(-g)
 
 add_executable(moveit_collision src/moveit_collision.cpp include/moveit.hpp)
 ament_target_dependencies(moveit_collision
   rclcpp
-  rclcpp_action
-  control_msgs
   moveit_ros_planning_interface
-  sim_action_server
   gazebo_msgs
+  std_srvs
 )
 
 if(BUILD_TESTING)
@@ -67,7 +62,7 @@ if(BUILD_TESTING)
 endif()
 
 ## Install
-install(TARGETS moveit_controller  moveit_collision throw_moveit
+install(TARGETS moveit_controller  moveit_collision
   DESTINATION lib/${PROJECT_NAME}
 )
 

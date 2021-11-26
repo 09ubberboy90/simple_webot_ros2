@@ -32,6 +32,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+
 using std::placeholders::_1;
 
 using namespace Eigen;
@@ -83,6 +84,33 @@ bool goto_pose(moveit::planning_interface::MoveGroupInterface *move_group, geome
     return wait_for_exec(move_group);
 }
 
+int set_service(std::shared_ptr<rclcpp::Node> node, rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr client, bool set_active)
+{
+    auto request = std::make_shared<std_srvs::srv::SetBool_Request>();
+    request->data = set_active;
+
+    while (!client->wait_for_service(1s)) {
+        if (!rclcpp::ok()) {
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
+        return 0;
+        }
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
+    }
+
+    auto result = client->async_send_request(request);
+    // Wait for the result.
+    if (rclcpp::spin_until_future_complete(node, result) ==
+        rclcpp::FutureReturnCode::SUCCESS)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Target set %s ", result.get()->success ? "successfully" : "unsuccessfull");
+        return 1;
+    } 
+    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_target_active");
+    return 0;
+
+}
+
+
 int main(int argc, char **argv)
 {
 
@@ -91,9 +119,14 @@ int main(int argc, char **argv)
     rclcpp::NodeOptions node_options;
     node_options.automatically_declare_parameters_from_overrides(true);
     auto move_group_node = rclcpp::Node::make_shared("panda_group_interface", node_options);
+    auto service_node = rclcpp::Node::make_shared("service_handler");
+
+    rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr client =
+        service_node->create_client<std_srvs::srv::SetBool>("set_target_active");
 
     // For current state monitor
     rclcpp::executors::MultiThreadedExecutor executor;
+    // executor.add_node(service_node);
     executor.add_node(move_group_node);
     // executor.add_node(parameter_server);
     std::thread([&executor]() { executor.spin(); }).detach();
@@ -167,9 +200,7 @@ int main(int argc, char **argv)
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Closing hand");
     // parameter_server->set_param(true);
 
-    auto acm = planning_scene_monitor.getPlanningScene()->getAllowedCollisionMatrix();
-    acm.setDefaultEntry(target, true);
-
+    set_service(service_node, client, false);
     collision_object.operation = collision_object.REMOVE;
     // std::this_thread::sleep_for(std::chrono::seconds(1));
     planning_scene_interface.applyCollisionObject(collision_object);
@@ -209,12 +240,9 @@ int main(int argc, char **argv)
         change_gripper(&hand_move_group, gripper_state::opened);
     }
 
-    collision_object = planning_scene_interface.getAttachedObjects({target})[target].object;
-    collision_object.operation = collision_object.ADD;
-    planning_scene_interface.applyCollisionObject(collision_object);
+    set_service(service_node, client, true);
 
     move_group.detachObject("target");
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going to start pose");
     goto_pose(&move_group, start_pose);

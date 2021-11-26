@@ -31,13 +31,8 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
-#include <moveit_msgs/msg/display_robot_state.hpp>
-#include <moveit_msgs/msg/display_trajectory.hpp>
-
 #include <moveit_msgs/msg/attached_collision_object.hpp>
 #include <moveit_msgs/msg/collision_object.hpp>
-
-#include <moveit/macros/console_colors.h>
 
 #include <chrono>
 #include <cstdlib>
@@ -47,30 +42,31 @@
 #include <thread>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_action/rclcpp_action.hpp"
 
 #include "geometry_msgs/msg/pose_array.hpp"
 #include "std_msgs/msg/bool.hpp"
-
-#include "control_msgs/action/follow_joint_trajectory.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 
 #include "gazebo_msgs/srv/get_entity_state.hpp"
 #include "gazebo_msgs/srv/get_model_list.hpp"
-
+#include "gazebo_msgs/msg/model_state.hpp"
+#include "gazebo_msgs/msg/model_states.hpp"
 
 void namer(std::shared_ptr<gazebo_msgs::srv::GetModelList_Request>, std::string);
 void namer(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Request>, std::string);
 
-void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetModelList_Response>>, geometry_msgs::msg::PoseArray *);
-void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response>>, geometry_msgs::msg::PoseArray *);
+void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetModelList_Response>>, gazebo_msgs::msg::ModelStates *);
+void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response>>, gazebo_msgs::msg::ModelStates *);
 
+int set_service(std::shared_ptr<rclcpp::Node>, rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr, bool);
+void set_bool(const std::shared_ptr<std_srvs::srv::SetBool::Request>, std::shared_ptr<std_srvs::srv::SetBool::Response>, bool *);
 
 
 template <typename MessageType>
-int service_caller(std::shared_ptr<rclcpp::Node>, std::string, geometry_msgs::msg::PoseArray *, std::string arg="");
+int service_caller(std::shared_ptr<rclcpp::Node>, std::string, gazebo_msgs::msg::ModelStates *, std::string arg="");
 
 template <typename MessageType>
-int service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, geometry_msgs::msg::PoseArray *poses, std::string arg)
+int service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, gazebo_msgs::msg::ModelStates *states, std::string arg)
 {
     typename rclcpp::Client<MessageType>::SharedPtr model_list_cl =
         node->create_client<MessageType>(srv_name);
@@ -97,7 +93,7 @@ int service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, geo
     if (rclcpp::spin_until_future_complete(node, result) ==
         rclcpp::FutureReturnCode::SUCCESS)
     {
-        result_handler(node, result, poses);
+        result_handler(node, result, states);
     }
     else
     {
