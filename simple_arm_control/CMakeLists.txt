@@ -18,10 +18,10 @@ set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_srvs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(gazebo_msgs REQUIRED)
 find_package(backward_ros REQUIRED)
+find_package(webots_custom_interface REQUIRED)
 
 
 install(DIRECTORY
@@ -33,8 +33,8 @@ add_executable(moveit_controller src/moveit_controller.cpp include/moveit.hpp)
 ament_target_dependencies(moveit_controller
   rclcpp
   moveit_ros_planning_interface
-  std_srvs
   gazebo_msgs
+  webots_custom_interface
 )
 # add_executable(throw_moveit src/throw_moveit.cpp include/moveit.hpp)
 # ament_target_dependencies(throw_moveit
@@ -51,7 +51,7 @@ ament_target_dependencies(moveit_collision
   rclcpp
   moveit_ros_planning_interface
   gazebo_msgs
-  std_srvs
+  webots_custom_interface
 )
 
 if(BUILD_TESTING)

@@ -42,7 +42,6 @@ void namer(std::shared_ptr<gazebo_msgs::srv::GetModelList_Request> request, std:
 
 void result_handler(std::shared_ptr<rclcpp::Node> node, std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetModelList_Response>> result, gazebo_msgs::msg::ModelStates *states)
 {
-    std::set<std::string> banned{"panda", "ground_plane"};
     for (auto name : result.get()->model_names)
     {
         if (banned.count(name) == 0)
@@ -59,10 +58,11 @@ void result_handler(std::shared_ptr<rclcpp::Node> node, std::shared_future<std::
     states->twist.push_back(result.get()->state.twist);
 }
 
-void set_bool(const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-          std::shared_ptr<std_srvs::srv::SetBool::Response> response, bool *param)
+void set_bool(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request> request,
+          std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response> response, bool *param, std::string *obj_name)
 {
     *param = request->data;
+    *obj_name = request->name;
     response->success = true;
     response->message = "200";
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"%s", param ? "true" : "false");
@@ -70,7 +70,6 @@ void set_bool(const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
 
 int main(int argc, char **argv)
 {
-
     rclcpp::init(argc, argv);
     std::map<std::string, double> obj_height = {};
     rclcpp::NodeOptions node_options;
@@ -79,12 +78,13 @@ int main(int argc, char **argv)
     auto service_node = rclcpp::Node::make_shared("service_handler");
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("set_target_active_server");
     bool param = true;
+    std::string obj_name = "";
 
-    std::function<void(const std::shared_ptr<std_srvs::srv::SetBool::Request>,
-          std::shared_ptr<std_srvs::srv::SetBool::Response>)> fcn2 = std::bind(set_bool, std::placeholders::_1, std::placeholders::_2, &param);
+    std::function<void(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request>,
+          std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response>)> fcn2 = std::bind(set_bool, std::placeholders::_1, std::placeholders::_2, &param, &obj_name);
 
-    rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr service =
-        node->create_service<std_srvs::srv::SetBool>("set_target_active", fcn2);
+    rclcpp::Service<webots_custom_interface::srv::SetObjectActive>::SharedPtr service =
+        node->create_service<webots_custom_interface::srv::SetObjectActive>("set_target_active", fcn2);
     
 
     // For current state monitor
@@ -144,15 +144,11 @@ int main(int argc, char **argv)
             }
             pose.position.z += height / 2;
             
-            if (i == 1)
+            if (!param && obj.id == obj_name)
             {
-                if (!param)
-                {
-                    obj_height.erase(obj.id);
-                    continue;
-                }                
-                obj.id = "target";
-            }
+                obj_height.erase(obj_name);
+                continue;
+            }                
 
             obj.primitive_poses.push_back(pose);
             collision_objects.push_back(obj);

@@ -22,15 +22,16 @@ class SpawnerNode(WebotsNode):
             GetModelList, 'get_model_list', self.get_model_list)
         self.objs = {}
         # self.robot.simulationSetMode(self.robot.SIMULATION_MODE_FAST)
-        self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57])
-        self.spawn_obj("worlds/Cube.wbo", position = [0.3-0.6, 0, 0.55])
-        # for x in range(-4, 5):
-        #     for y in range(-4, 5):
-        #         if x == 0.3 and y == 0:
-        #             continue
-        #         self.spawn_obj("worlds/Cube.wbo", [x/10, y/10, 0.55])
+        self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57], offset=[0.6, 0, 0])
+        # for i in range(-5,6):
+        #     for j in range(-5,6):
+        #         print(f"Spawned at {i*0.5} {j*0.5}")
+        #         self.spawn_obj("worlds/Cube.wbo", position = [i, 0, j])
+        for x in range(2, 5):
+            for y in range(-3, 4    ):
+                self.spawn_obj("worlds/Cube.wbo", [x/10, y/10, 0.55])
 
-    def spawn_obj(self, path, position=[0, 0, 0], offset=[0.6, 0, 0], rotation = [0,1,0,0]):
+    def spawn_obj(self, path, position=[0, 0, 0], offset=[0, 0, 0], rotation = [0,1,0,0]):
         out = []
         for i, j in zip(position, offset):
             out.append(i+j)

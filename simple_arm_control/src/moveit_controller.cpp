@@ -31,7 +31,9 @@
 #include "moveit.hpp"
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_scene/planning_scene.h>
-
+#include <stdlib.h>
+#include <time.h>
+#include <algorithm>
 
 using std::placeholders::_1;
 
@@ -84,10 +86,11 @@ bool goto_pose(moveit::planning_interface::MoveGroupInterface *move_group, geome
     return wait_for_exec(move_group);
 }
 
-int set_service(std::shared_ptr<rclcpp::Node> node, rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr client, bool set_active)
+int set_service(std::shared_ptr<rclcpp::Node> node, rclcpp::Client<webots_custom_interface::srv::SetObjectActive>::SharedPtr client, bool set_active, std::string name)
 {
-    auto request = std::make_shared<std_srvs::srv::SetBool_Request>();
+    auto request = std::make_shared<webots_custom_interface::srv::SetObjectActive_Request>();
     request->data = set_active;
+    request->name = name;
 
     while (!client->wait_for_service(1s)) {
         if (!rclcpp::ok()) {
@@ -110,20 +113,45 @@ int set_service(std::shared_ptr<rclcpp::Node> node, rclcpp::Client<std_srvs::srv
 
 }
 
+std::pair<const std::string, moveit_msgs::msg::CollisionObject> choose_target(moveit::planning_interface::PlanningSceneInterface *ps, std::set<std::string> * processed)
+{    
+    srand ( time(NULL) ); //initialize the random seed
+    auto collision_objects = ps->getObjects();
+
+    for (std::set<std::string>::iterator it = processed->begin(); it != processed->end(); it++) 
+    {
+        // Known as the erase remove idiom
+        collision_objects.erase(*it);
+    }
+
+    int rand_index = rand() % (int) collision_objects.size();
+    auto chosen = *std::next(std::begin(collision_objects),rand_index-1);
+    
+    processed->emplace(chosen.first);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Chosen target is %s", chosen.first.c_str());
+    return chosen;
+
+}
 
 int main(int argc, char **argv)
 {
 
     rclcpp::init(argc, argv);
-
     rclcpp::NodeOptions node_options;
     node_options.automatically_declare_parameters_from_overrides(true);
     auto move_group_node = rclcpp::Node::make_shared("panda_group_interface", node_options);
     auto service_node = rclcpp::Node::make_shared("service_handler");
 
-    rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr client =
-        service_node->create_client<std_srvs::srv::SetBool>("set_target_active");
+    rclcpp::Client<webots_custom_interface::srv::SetObjectActive>::SharedPtr client =
+        service_node->create_client<webots_custom_interface::srv::SetObjectActive>("set_target_active");
+    rclcpp::Client<gazebo_msgs::srv::GetModelList>::SharedPtr models_client =
+        service_node->create_client<gazebo_msgs::srv::GetModelList>("get_model_list");
 
+    std::set<std::string> processed{""};
+    for (auto i : banned)
+    {
+        processed.insert(i);
+    }    
     // For current state monitor
     rclcpp::executors::MultiThreadedExecutor executor;
     // executor.add_node(service_node);
@@ -172,10 +200,12 @@ int main(int argc, char **argv)
     // }
 
 
-    std::string target = "target";
-    
-    auto collision_object = planning_scene_interface.getObjects({target})[target];
+    auto object = choose_target(&planning_scene_interface, &processed);
 
+    auto obj_name = object.first;
+    auto collision_object = object.second;
+
+    // set_service(service_node, client, true, obj_name); // advertise to collision
     auto pose = collision_object.primitive_poses[0];
     Quaternionf q = AngleAxisf(3.14, Vector3f::UnitX()) * AngleAxisf(0, Vector3f::UnitY()) * AngleAxisf(0.785, Vector3f::UnitZ());
 
@@ -200,13 +230,12 @@ int main(int argc, char **argv)
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Closing hand");
     // parameter_server->set_param(true);
 
-    set_service(service_node, client, false);
+    set_service(service_node, client, false, obj_name);
     collision_object.operation = collision_object.REMOVE;
     // std::this_thread::sleep_for(std::chrono::seconds(1));
     planning_scene_interface.applyCollisionObject(collision_object);
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    hand_move_group.attachObject(target);
     hand_move_group.setMaxVelocityScalingFactor(0.1);
     hand_move_group.setMaxAccelerationScalingFactor(0.1);
 
@@ -240,13 +269,11 @@ int main(int argc, char **argv)
         change_gripper(&hand_move_group, gripper_state::opened);
     }
 
-    set_service(service_node, client, true);
-
-    move_group.detachObject("target");
+    set_service(service_node, client, true, obj_name);
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going to start pose");
     goto_pose(&move_group, start_pose);
-    collision_object = planning_scene_interface.getObjects({target})[target];
+    collision_object = planning_scene_interface.getObjects({obj_name})[obj_name];
     auto new_pose = collision_object.primitive_poses[0];
 
     if ((new_pose.position.x < pose.position.x - 0.05) || (pose.position.x + 0.05 < new_pose.position.x))

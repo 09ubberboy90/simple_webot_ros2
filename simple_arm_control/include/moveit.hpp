@@ -27,6 +27,8 @@
 //CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 //OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#ifndef MOVEIT_HPP
+#define MOVEIT_HPP
 
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
@@ -45,12 +47,14 @@
 
 #include "geometry_msgs/msg/pose_array.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "std_srvs/srv/set_bool.hpp"
+#include "webots_custom_interface/srv/set_object_active.hpp"
 
 #include "gazebo_msgs/srv/get_entity_state.hpp"
 #include "gazebo_msgs/srv/get_model_list.hpp"
 #include "gazebo_msgs/msg/model_state.hpp"
 #include "gazebo_msgs/msg/model_states.hpp"
+
+std::set<std::string> banned{"panda", "ground_plane"};
 
 void namer(std::shared_ptr<gazebo_msgs::srv::GetModelList_Request>, std::string);
 void namer(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Request>, std::string);
@@ -58,8 +62,8 @@ void namer(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Request>, std::strin
 void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetModelList_Response>>, gazebo_msgs::msg::ModelStates *);
 void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response>>, gazebo_msgs::msg::ModelStates *);
 
-int set_service(std::shared_ptr<rclcpp::Node>, rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr, bool);
-void set_bool(const std::shared_ptr<std_srvs::srv::SetBool::Request>, std::shared_ptr<std_srvs::srv::SetBool::Response>, bool *);
+int set_service(std::shared_ptr<rclcpp::Node>, rclcpp::Client<webots_custom_interface::srv::SetObjectActive>::SharedPtr, bool, std::string);
+void set_bool(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request>, std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response>, bool *, std::string *obj_name);
 
 
 template <typename MessageType>
@@ -104,3 +108,4 @@ int service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, gaz
 
 }
 
+#endif
