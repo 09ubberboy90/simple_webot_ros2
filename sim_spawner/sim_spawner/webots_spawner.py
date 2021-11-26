@@ -47,17 +47,22 @@ class SpawnerNode(WebotsNode):
 
     def get_entity_state(self, request: GetEntityState.Request, response: GetEntityState.Response):
         obj = self.objs.get(request.name)
+        success = True
         if obj is None:
             response.success = False
             return response
         state = EntityState()
         state.name = request.name
         pose = Pose()
-        pose.position = self.get_postion(obj)
-        pose.orientation = self.get_rotation(obj)
-        state.pose = pose
-        response.state = state
-        response.success = True
+        try:    
+            pose.position = self.get_postion(obj)
+            pose.orientation = self.get_rotation(obj)
+        except: # object got deleted
+            success = False
+        finally:    
+            state.pose = pose
+            response.state = state
+            response.success = success
         return response
 
     def get_postion(self, obj):
