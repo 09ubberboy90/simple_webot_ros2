@@ -6,9 +6,9 @@ SimpleMoveIt::SimpleMoveIt(std::string node_name) :
     hand_move_group(std::shared_ptr<rclcpp::Node>(std::move(this)), "hand")
 {
     move_group.allowReplanning(true);
-    move_group.setNumPlanningAttempts(10);
+    move_group.setNumPlanningAttempts(5);
     hand_move_group.allowReplanning(true);
-    hand_move_group.setNumPlanningAttempts(10);
+    hand_move_group.setNumPlanningAttempts(5);
     move_group.setMaxVelocityScalingFactor(1.0);
     move_group.setMaxAccelerationScalingFactor(1.0);
     this->client = std::make_shared<ServiceClient<simple_interface::srv::SetObjectActive>>("set_target_active");
@@ -17,7 +17,7 @@ SimpleMoveIt::SimpleMoveIt(std::string node_name) :
 bool SimpleMoveIt::wait_for_exec(moveit::planning_interface::MoveGroupInterface *move_group)
 {
     moveit::planning_interface::MoveGroupInterface::Plan plan;
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 5; i++)
     {
         // 10 tries to plan otherwise give up
         bool success = (move_group->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);

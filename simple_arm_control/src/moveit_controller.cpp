@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
         auto obj_name = object.first;
         auto collision_object = object.second;
-
+        bool success = true;
         // set_service(service_node, client, true, obj_name); // advertise to collision
         auto pose = collision_object.primitive_poses[0];
         Eigen::Quaternionf q = Eigen::AngleAxisf(3.14, Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(0, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(0.785, Eigen::Vector3f::UnitZ());
@@ -96,16 +96,26 @@ int main(int argc, char **argv)
         pose.position.z += 0.1;
 
 
-        simple_moveit->pick(obj_name, pose);
+        success = simple_moveit->pick(obj_name, pose);
+
+        if (!success)
+        {
+            //Handle failure
+        }
+        
 
         pose.position.x = 0.6;
         pose.position.y = 0.0;
-        pose.position.z = (0.27) + i*0.1; 
+        pose.position.z = (0.37) + i*0.05; 
         
 
-        simple_moveit->place(obj_name, pose);
+        success = simple_moveit->place(obj_name, pose);
 
         
+        if (!success)
+        {
+            //Handle failure
+        }
         collision_object = simple_moveit->get_planning_scene_interface()->getObjects({obj_name})[obj_name];
         auto new_pose = collision_object.primitive_poses[0];
 
