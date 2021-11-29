@@ -25,10 +25,9 @@ def generate_launch_description():
     # - `world` (str): Path to the world to launch.
     # - `gui` (bool): Whether to display GUI or not.
     # - `mode` (str): Can be `pause`, `realtime`, or `fast`.
-    package_dir = get_package_share_directory('webots_simple_arm')
 
     webots = WebotsLauncher(
-        world=os.path.join(package_dir, 'worlds', 'panda.wbt'),
+        world=os.path.join(pkg_share, 'worlds', 'panda.wbt'),
         mode="realtime",
         gui="True"
     )

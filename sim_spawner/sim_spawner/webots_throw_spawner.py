@@ -22,7 +22,7 @@ class SpawnerNode(WebotsNode):
     def __init__(self, args=None):
         super().__init__("spawner", args)
 
-        self.package_dir = get_package_share_directory('webots_simple_arm')
+        self.package_dir = get_package_share_directory('webots_driver')
         self.children = self.robot.getRoot().getField("children")
         self.entity = self.create_service(
             GetEntityState, 'get_entity_state', self.get_entity_state)
