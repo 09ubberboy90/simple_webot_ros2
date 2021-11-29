@@ -15,6 +15,8 @@ setup(
         ('share/' + package_name + '/config', glob('config/*.*')),
         ('share/' + package_name + '/urdf', glob('urdf/*.*')),
         ('share/' + package_name + '/worlds', glob('worlds/*.*')),
+        ('share/' + package_name +'/protos', ['protos/panda.proto'])
+
     ],
     install_requires=['setuptools'],
     zip_safe=True,
