@@ -28,9 +28,24 @@
 //OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "moveit.hpp"
-#include <map>
 #include "service_handler.hpp"
+#include "shared.hpp"
+#include "gazebo_msgs/srv/get_entity_state.hpp"
+#include "gazebo_msgs/srv/get_model_list.hpp"
+#include "gazebo_msgs/msg/model_state.hpp"
+#include "gazebo_msgs/msg/model_states.hpp"
+
+#include "simple_interface/srv/set_object_active.hpp"
+
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/move_group_interface/move_group_interface.h>
+
+#include <moveit_msgs/msg/collision_object.hpp>
+
+#include <chrono>
+#include <string>
+#include <vector>
+#include <map>
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -59,8 +74,8 @@ void get_model_list_handler(std::shared_ptr<ServiceClient<gazebo_msgs::srv::GetM
 }
 
 
-void set_bool(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request> request,
-          std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response> response, bool *param, std::string *obj_name)
+void set_bool(const std::shared_ptr<simple_interface::srv::SetObjectActive::Request> request,
+          std::shared_ptr<simple_interface::srv::SetObjectActive::Response> response, bool *param, std::string *obj_name)
 {
     *param = request->data;
     *obj_name = request->name;
@@ -81,11 +96,11 @@ int main(int argc, char **argv)
     bool param = true;
     std::string obj_name = "";
 
-    std::function<void(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request>,
-          std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response>)> fcn2 = std::bind(set_bool, std::placeholders::_1, std::placeholders::_2, &param, &obj_name);
+    std::function<void(const std::shared_ptr<simple_interface::srv::SetObjectActive::Request>,
+          std::shared_ptr<simple_interface::srv::SetObjectActive::Response>)> fcn2 = std::bind(set_bool, std::placeholders::_1, std::placeholders::_2, &param, &obj_name);
 
-    rclcpp::Service<webots_custom_interface::srv::SetObjectActive>::SharedPtr service =
-        node->create_service<webots_custom_interface::srv::SetObjectActive>("set_target_active", fcn2);
+    rclcpp::Service<simple_interface::srv::SetObjectActive>::SharedPtr service =
+        node->create_service<simple_interface::srv::SetObjectActive>("set_target_active", fcn2);
 
     auto model_client = std::make_shared<ServiceClient<gazebo_msgs::srv::GetModelList>>("get_model_list");
     auto state_client = std::make_shared<ServiceClient<gazebo_msgs::srv::GetEntityState>>("get_entity_state");

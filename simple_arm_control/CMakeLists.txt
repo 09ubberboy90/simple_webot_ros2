@@ -21,20 +21,21 @@ find_package(rclcpp REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(gazebo_msgs REQUIRED)
 find_package(backward_ros REQUIRED)
-find_package(webots_custom_interface REQUIRED)
+find_package(simple_interface REQUIRED)
 
 
 install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 include_directories(include)
+add_compile_options(-g)
 
-add_executable(moveit_controller src/moveit_controller.cpp include/moveit.hpp include/service_handler.hpp)
+add_executable(moveit_controller src/moveit_controller.cpp src/simple_moveit.cpp include/service_handler.hpp include/shared.hpp)
 ament_target_dependencies(moveit_controller
   rclcpp
   moveit_ros_planning_interface
   gazebo_msgs
-  webots_custom_interface
+  simple_interface
 )
 # add_executable(throw_moveit src/throw_moveit.cpp include/moveit.hpp)
 # ament_target_dependencies(throw_moveit
@@ -44,14 +45,13 @@ ament_target_dependencies(moveit_controller
 #   moveit_ros_planning_interface
 #   sim_action_server
 # )
-add_compile_options(-g)
 
-add_executable(moveit_collision src/moveit_collision.cpp include/moveit.hpp include/service_handler.hpp)
+add_executable(moveit_collision src/moveit_collision.cpp include/service_handler.hpp include/shared.hpp)
 ament_target_dependencies(moveit_collision
   rclcpp
   moveit_ros_planning_interface
   gazebo_msgs
-  webots_custom_interface
+  simple_interface
 )
 
 if(BUILD_TESTING)
@@ -69,5 +69,16 @@ install(TARGETS moveit_controller  moveit_collision
 install(DIRECTORY include
   DESTINATION include/${PROJECT_NAME}/)
   
+# install(
+#   TARGETS simple_arm_control
+#   EXPORT simple_arm_control     # <-- documentation prepends export_
+#   ARCHIVE DESTINATION lib
+#   LIBRARY DESTINATION lib
+#   RUNTIME DESTINATION bin
+#   INCLUDES DESTINATION include
+# )
 
+# ament_export_include_directories(include)
+# ament_export_libraries(simple_arm_control)
+  
 ament_package()

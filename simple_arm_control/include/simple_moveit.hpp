@@ -27,34 +27,44 @@
 //CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 //OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#ifndef MOVEIT_HPP
-#define MOVEIT_HPP
-
-#include <moveit/move_group_interface/move_group_interface.h>
+#pragma once
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 
-#include <moveit_msgs/msg/attached_collision_object.hpp>
-#include <moveit_msgs/msg/collision_object.hpp>
-
-#include <chrono>
-#include <cstdlib>
-#include <memory>
 #include <string>
-#include <vector>
-#include <thread>
 
 #include "rclcpp/rclcpp.hpp"
-
 #include "geometry_msgs/msg/pose_array.hpp"
-#include "std_msgs/msg/bool.hpp"
-#include "webots_custom_interface/srv/set_object_active.hpp"
+#include "simple_interface/srv/set_object_active.hpp"
+#include "service_handler.hpp"
 
-#include "gazebo_msgs/srv/get_entity_state.hpp"
-#include "gazebo_msgs/srv/get_model_list.hpp"
-#include "gazebo_msgs/msg/model_state.hpp"
-#include "gazebo_msgs/msg/model_states.hpp"
+enum gripper_state
+{
+    opened = 35,
+    closed = 0
+};
 
-std::set<std::string> banned{"panda", "ground_plane"};
+class SimpleMoveIt : public rclcpp::Node
+{
+public:
+    SimpleMoveIt(std::string node_name);
+    bool pick(std::string name, geometry_msgs::msg::Pose pose, double approach_distance = 0.1);
+    bool goto_pose(geometry_msgs::msg::Pose pose);
+    bool goto_pose(moveit::planning_interface::MoveGroupInterface *move_group, geometry_msgs::msg::Pose pose);
+    bool change_gripper(gripper_state state);
+    moveit::planning_interface::MoveGroupInterface* get_move_group() {return &move_group;}
+    moveit::planning_interface::MoveGroupInterface* get_hand_move_group() {return &hand_move_group;}
+    moveit::planning_interface::PlanningSceneInterface* get_planning_scene_interface() {return &planning_scene_interface;}
+    bool set_obj_active(std::string name, bool set_active);
+private:
+
+    moveit::planning_interface::MoveGroupInterface move_group;
+    moveit::planning_interface::MoveGroupInterface hand_move_group;
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+    std::shared_ptr<ServiceClient<simple_interface::srv::SetObjectActive>> client;
+
+    bool wait_for_exec(moveit::planning_interface::MoveGroupInterface *move_group);
 
 
-#endif
+};
+

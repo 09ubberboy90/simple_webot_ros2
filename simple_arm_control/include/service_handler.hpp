@@ -1,6 +1,4 @@
-#ifndef SERVICE_HANDLER_HPP
-#define SERVICE_HANDLER_HPP
-
+#pragma once
 
 #include <stdlib.h>
 #include <functional>
@@ -68,6 +66,3 @@ std::shared_ptr<typename T::Request> ServiceClient<T>::create_request_message()
 {
     return std::make_shared<typename T::Request>();
 }
-
-
-#endif //
