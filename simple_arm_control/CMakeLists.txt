@@ -29,7 +29,7 @@ install(DIRECTORY
 )
 include_directories(include)
 
-add_executable(moveit_controller src/moveit_controller.cpp include/moveit.hpp)
+add_executable(moveit_controller src/moveit_controller.cpp include/moveit.hpp include/service_handler.hpp)
 ament_target_dependencies(moveit_controller
   rclcpp
   moveit_ros_planning_interface
@@ -46,7 +46,7 @@ ament_target_dependencies(moveit_controller
 # )
 add_compile_options(-g)
 
-add_executable(moveit_collision src/moveit_collision.cpp include/moveit.hpp)
+add_executable(moveit_collision src/moveit_collision.cpp include/moveit.hpp include/service_handler.hpp)
 ament_target_dependencies(moveit_collision
   rclcpp
   moveit_ros_planning_interface

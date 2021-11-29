@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
+#include "service_handler.hpp"
 
 using std::placeholders::_1;
 
@@ -86,30 +87,13 @@ bool goto_pose(moveit::planning_interface::MoveGroupInterface *move_group, geome
     return wait_for_exec(move_group);
 }
 
-int set_service(std::shared_ptr<rclcpp::Node> node, rclcpp::Client<webots_custom_interface::srv::SetObjectActive>::SharedPtr client, bool set_active, std::string name)
+void set_obj_active(std::shared_ptr<ServiceClient<webots_custom_interface::srv::SetObjectActive>> client, std::string name, bool set_active)
 {
-    auto request = std::make_shared<webots_custom_interface::srv::SetObjectActive_Request>();
+    auto request = client->create_request_message();
     request->data = set_active;
     request->name = name;
-
-    while (!client->wait_for_service(1s)) {
-        if (!rclcpp::ok()) {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
-        return 0;
-        }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
-    }
-
-    auto result = client->async_send_request(request);
-    // Wait for the result.
-    if (rclcpp::spin_until_future_complete(node, result) ==
-        rclcpp::FutureReturnCode::SUCCESS)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Target set %s ", result.get()->success ? "successfully" : "unsuccessfull");
-        return 1;
-    } 
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service set_target_active");
-    return 0;
+    auto response = client->service_caller(request);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Obj %s set %s %s", name.c_str(), set_active ? "active" :"inactive", response->success ? "successfully": "unsuccessfully");
 
 }
 
@@ -133,6 +117,7 @@ std::pair<const std::string, moveit_msgs::msg::CollisionObject> choose_target(mo
 
 }
 
+
 int main(int argc, char **argv)
 {
 
@@ -140,12 +125,8 @@ int main(int argc, char **argv)
     rclcpp::NodeOptions node_options;
     node_options.automatically_declare_parameters_from_overrides(true);
     auto move_group_node = rclcpp::Node::make_shared("panda_group_interface", node_options);
-    auto service_node = rclcpp::Node::make_shared("service_handler");
 
-    rclcpp::Client<webots_custom_interface::srv::SetObjectActive>::SharedPtr client =
-        service_node->create_client<webots_custom_interface::srv::SetObjectActive>("set_target_active");
-    rclcpp::Client<gazebo_msgs::srv::GetModelList>::SharedPtr models_client =
-        service_node->create_client<gazebo_msgs::srv::GetModelList>("get_model_list");
+    auto client = std::make_shared<ServiceClient<webots_custom_interface::srv::SetObjectActive>>("set_target_active");
 
     std::set<std::string> processed{""};
     for (auto i : banned)
@@ -229,8 +210,7 @@ int main(int argc, char **argv)
     goto_pose(&move_group, pose);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Closing hand");
     // parameter_server->set_param(true);
-
-    set_service(service_node, client, false, obj_name);
+    set_obj_active(client, obj_name, false);
     collision_object.operation = collision_object.REMOVE;
     // std::this_thread::sleep_for(std::chrono::seconds(1));
     planning_scene_interface.applyCollisionObject(collision_object);
@@ -269,7 +249,7 @@ int main(int argc, char **argv)
         change_gripper(&hand_move_group, gripper_state::opened);
     }
 
-    set_service(service_node, client, true, obj_name);
+    set_obj_active(client, obj_name, true);
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going to start pose");
     goto_pose(&move_group, start_pose);

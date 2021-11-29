@@ -30,33 +30,34 @@
 
 #include "moveit.hpp"
 #include <map>
+#include "service_handler.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-void namer(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Request> request, std::string arg)
+void get_model_state_handler(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response> result, gazebo_msgs::msg::ModelStates *states)
 {
-    request->name = arg;
+    states->name.push_back(result->state.name);
+    states->pose.push_back(result->state.pose);
+    states->twist.push_back(result->state.twist);
 }
-void namer(std::shared_ptr<gazebo_msgs::srv::GetModelList_Request> request, std::string arg) {}
 
-void result_handler(std::shared_ptr<rclcpp::Node> node, std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetModelList_Response>> result, gazebo_msgs::msg::ModelStates *states)
+void get_model_list_handler(std::shared_ptr<ServiceClient<gazebo_msgs::srv::GetModelList>> model_client, std::shared_ptr<ServiceClient<gazebo_msgs::srv::GetEntityState>> state_client, gazebo_msgs::msg::ModelStates *states)
 {
-    for (auto name : result.get()->model_names)
+    auto model_request = model_client->create_request_message();
+    auto state_request = state_client->create_request_message();
+    auto model_response = model_client->service_caller(model_request);
+    for (auto name : model_response->model_names)
     {
         if (banned.count(name) == 0)
         {
-            service_caller<gazebo_msgs::srv::GetEntityState>(node, "get_entity_state", states, name);
+            state_request->name = name;
+            auto state_response = state_client->service_caller(state_request);
+            get_model_state_handler(state_response, states);
         }
     }
 }
 
-void result_handler(std::shared_ptr<rclcpp::Node> node, std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response>> result, gazebo_msgs::msg::ModelStates *states)
-{
-    states->name.push_back(result.get()->state.name);
-    states->pose.push_back(result.get()->state.pose);
-    states->twist.push_back(result.get()->state.twist);
-}
 
 void set_bool(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request> request,
           std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response> response, bool *param, std::string *obj_name)
@@ -85,7 +86,9 @@ int main(int argc, char **argv)
 
     rclcpp::Service<webots_custom_interface::srv::SetObjectActive>::SharedPtr service =
         node->create_service<webots_custom_interface::srv::SetObjectActive>("set_target_active", fcn2);
-    
+
+    auto model_client = std::make_shared<ServiceClient<gazebo_msgs::srv::GetModelList>>("get_model_list");
+    auto state_client = std::make_shared<ServiceClient<gazebo_msgs::srv::GetEntityState>>("get_entity_state");
 
     // For current state monitor
     rclcpp::executors::MultiThreadedExecutor executor;
@@ -106,7 +109,7 @@ int main(int argc, char **argv)
     {
         gazebo_msgs::msg::ModelStates states;
         std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
-        service_caller<gazebo_msgs::srv::GetModelList>(service_node, "get_model_list", &states);
+        get_model_list_handler(model_client, state_client, &states);
         for (int i = 0; i < (int) states.name.size(); i++)
         {
             moveit_msgs::msg::CollisionObject obj;

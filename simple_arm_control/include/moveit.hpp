@@ -56,56 +56,5 @@
 
 std::set<std::string> banned{"panda", "ground_plane"};
 
-void namer(std::shared_ptr<gazebo_msgs::srv::GetModelList_Request>, std::string);
-void namer(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Request>, std::string);
-
-void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetModelList_Response>>, gazebo_msgs::msg::ModelStates *);
-void result_handler(std::shared_ptr<rclcpp::Node>,std::shared_future<std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response>>, gazebo_msgs::msg::ModelStates *);
-
-int set_service(std::shared_ptr<rclcpp::Node>, rclcpp::Client<webots_custom_interface::srv::SetObjectActive>::SharedPtr, bool, std::string);
-void set_bool(const std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Request>, std::shared_ptr<webots_custom_interface::srv::SetObjectActive::Response>, bool *, std::string *obj_name);
-
-
-template <typename MessageType>
-int service_caller(std::shared_ptr<rclcpp::Node>, std::string, gazebo_msgs::msg::ModelStates *, std::string arg="");
-
-template <typename MessageType>
-int service_caller(std::shared_ptr<rclcpp::Node> node, std::string srv_name, gazebo_msgs::msg::ModelStates *states, std::string arg)
-{
-    typename rclcpp::Client<MessageType>::SharedPtr model_list_cl =
-        node->create_client<MessageType>(srv_name);
-
-    auto request = std::make_shared<typename MessageType::Request>();
-    if (!arg.empty())
-    {
-        namer(request, arg);
-    }
-    std::chrono::seconds timeout(1);
-    while (!model_list_cl->wait_for_service(timeout))
-    {
-        if (!rclcpp::ok())
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
-            return 0;
-        }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    auto result = model_list_cl->async_send_request(request);
-    // Wait for the result.
-    if (rclcpp::spin_until_future_complete(node, result) ==
-        rclcpp::FutureReturnCode::SUCCESS)
-    {
-        result_handler(node, result, states);
-    }
-    else
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service");
-        return 0;
-    }
-    return 1;
-
-}
 
 #endif
