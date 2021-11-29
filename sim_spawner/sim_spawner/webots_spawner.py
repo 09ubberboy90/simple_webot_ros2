@@ -14,7 +14,7 @@ class SpawnerNode(WebotsNode):
     def __init__(self, args=None):
         super().__init__("spawner", args)
 
-        self.package_dir = get_package_share_directory('webots_simple_arm')
+        self.package_dir = get_package_share_directory('webots_driver')
         self.children = self.robot.getRoot().getField("children")
         self.entity = self.create_service(
             GetEntityState, 'get_entity_state', self.get_entity_state)
@@ -22,14 +22,14 @@ class SpawnerNode(WebotsNode):
             GetModelList, 'get_model_list', self.get_model_list)
         self.objs = {}
         # self.robot.simulationSetMode(self.robot.SIMULATION_MODE_FAST)
-        self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57], offset=[0.6, 0, 0])
+        self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57], offset=[0.7, 0, -0.25])
         # for i in range(-5,6):
         #     for j in range(-5,6):
         #         print(f"Spawned at {i*0.5} {j*0.5}")
         #         self.spawn_obj("worlds/Cube.wbo", position = [i, 0, j])
-        for x in range(2, 5):
-            for y in range(-3, 4    ):
-                self.spawn_obj("worlds/Cube.wbo", [x/10, y/10, 0.55])
+        for x in range(3, 6):
+            for y in range(-3, 4):
+                self.spawn_obj("worlds/Cube.wbo", [x/10, y/10, 0.25])
 
     def spawn_obj(self, path, position=[0, 0, 0], offset=[0, 0, 0], rotation = [0,1,0,0]):
         out = []

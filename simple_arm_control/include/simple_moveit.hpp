@@ -28,15 +28,15 @@
 //OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"
-#include "simple_interface/srv/set_object_active.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "service_handler.hpp"
+#include "simple_interface/srv/set_object_active.hpp"
 
 enum gripper_state
 {
@@ -49,22 +49,20 @@ class SimpleMoveIt : public rclcpp::Node
 public:
     SimpleMoveIt(std::string node_name);
     bool pick(std::string name, geometry_msgs::msg::Pose pose, double approach_distance = 0.1);
+    bool place(std::string name, geometry_msgs::msg::Pose pose, double approach_distance = 0.1);
     bool goto_pose(geometry_msgs::msg::Pose pose);
     bool goto_pose(moveit::planning_interface::MoveGroupInterface *move_group, geometry_msgs::msg::Pose pose);
     bool change_gripper(gripper_state state);
-    moveit::planning_interface::MoveGroupInterface* get_move_group() {return &move_group;}
-    moveit::planning_interface::MoveGroupInterface* get_hand_move_group() {return &hand_move_group;}
-    moveit::planning_interface::PlanningSceneInterface* get_planning_scene_interface() {return &planning_scene_interface;}
+    moveit::planning_interface::MoveGroupInterface *get_move_group() { return &move_group; }
+    moveit::planning_interface::MoveGroupInterface *get_hand_move_group() { return &hand_move_group; }
+    moveit::planning_interface::PlanningSceneInterface *get_planning_scene_interface() { return &planning_scene_interface; }
     bool set_obj_active(std::string name, bool set_active);
-private:
 
+private:
     moveit::planning_interface::MoveGroupInterface move_group;
     moveit::planning_interface::MoveGroupInterface hand_move_group;
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     std::shared_ptr<ServiceClient<simple_interface::srv::SetObjectActive>> client;
 
     bool wait_for_exec(moveit::planning_interface::MoveGroupInterface *move_group);
-
-
 };
-

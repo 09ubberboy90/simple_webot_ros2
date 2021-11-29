@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdlib.h>
-#include <functional>
 #include "rclcpp/rclcpp.hpp"
+#include <functional>
+#include <stdlib.h>
 
 // using CallbackType = std::function<
 // void (
@@ -10,12 +10,13 @@
 //     std::shared_ptr<typename ServiceT::Response>)>;
 
 template <class T>
-class ServiceClient 
+class ServiceClient
 {
 public:
     ServiceClient(std::string srv_name);
     std::shared_ptr<typename T::Response> service_caller(std::shared_ptr<typename T::Request> request);
     std::shared_ptr<typename T::Request> create_request_message();
+
 private:
     std::shared_ptr<rclcpp::Node> node;
     std::shared_ptr<rclcpp::Client<T>> client;
@@ -51,8 +52,7 @@ std::shared_ptr<typename T::Response> ServiceClient<T>::service_caller(std::shar
     if (rclcpp::spin_until_future_complete(node, result) ==
         rclcpp::FutureReturnCode::SUCCESS)
     {
-        return result.get(); // get the future result 
-        
+        return result.get(); // get the future result
     }
     else
     {

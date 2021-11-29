@@ -28,27 +28,24 @@
 //OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "service_handler.hpp"
-#include "shared.hpp"
-#include "gazebo_msgs/srv/get_entity_state.hpp"
-#include "gazebo_msgs/srv/get_model_list.hpp"
 #include "gazebo_msgs/msg/model_state.hpp"
 #include "gazebo_msgs/msg/model_states.hpp"
+#include "gazebo_msgs/srv/get_entity_state.hpp"
+#include "gazebo_msgs/srv/get_model_list.hpp"
+#include "service_handler.hpp"
+#include "shared.hpp"
 
 #include "simple_interface/srv/set_object_active.hpp"
 
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 #include <moveit_msgs/msg/collision_object.hpp>
 
 #include <chrono>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-
-using namespace std::chrono_literals;
-using std::placeholders::_1;
 
 void get_model_state_handler(std::shared_ptr<gazebo_msgs::srv::GetEntityState_Response> result, gazebo_msgs::msg::ModelStates *states)
 {
@@ -73,15 +70,14 @@ void get_model_list_handler(std::shared_ptr<ServiceClient<gazebo_msgs::srv::GetM
     }
 }
 
-
 void set_bool(const std::shared_ptr<simple_interface::srv::SetObjectActive::Request> request,
-          std::shared_ptr<simple_interface::srv::SetObjectActive::Response> response, bool *param, std::string *obj_name)
+              std::shared_ptr<simple_interface::srv::SetObjectActive::Response> response, bool *param, std::string *obj_name)
 {
     *param = request->data;
     *obj_name = request->name;
     response->success = true;
     response->message = "200";
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"%s", param ? "true" : "false");
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Object %s has been set %s", obj_name->c_str(), request->data ? "active" : "inactive");
 }
 
 int main(int argc, char **argv)
@@ -97,7 +93,8 @@ int main(int argc, char **argv)
     std::string obj_name = "";
 
     std::function<void(const std::shared_ptr<simple_interface::srv::SetObjectActive::Request>,
-          std::shared_ptr<simple_interface::srv::SetObjectActive::Response>)> fcn2 = std::bind(set_bool, std::placeholders::_1, std::placeholders::_2, &param, &obj_name);
+                       std::shared_ptr<simple_interface::srv::SetObjectActive::Response>)>
+        fcn2 = std::bind(set_bool, std::placeholders::_1, std::placeholders::_2, &param, &obj_name);
 
     rclcpp::Service<simple_interface::srv::SetObjectActive>::SharedPtr service =
         node->create_service<simple_interface::srv::SetObjectActive>("set_target_active", fcn2);
@@ -109,7 +106,9 @@ int main(int argc, char **argv)
     rclcpp::executors::MultiThreadedExecutor executor;
     executor.add_node(move_group_node);
     executor.add_node(node);
-    std::thread([&executor]() { executor.spin(); }).detach();
+    std::thread([&executor]()
+                { executor.spin(); })
+        .detach();
 
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 
@@ -125,7 +124,7 @@ int main(int argc, char **argv)
         gazebo_msgs::msg::ModelStates states;
         std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
         get_model_list_handler(model_client, state_client, &states);
-        for (int i = 0; i < (int) states.name.size(); i++)
+        for (int i = 0; i < (int)states.name.size(); i++)
         {
             moveit_msgs::msg::CollisionObject obj;
             auto pose = states.pose[i];
@@ -138,7 +137,7 @@ int main(int argc, char **argv)
                 obj.operation = obj.MOVE;
                 height = obj_height[obj.id];
             }
-            else // New object 
+            else // New object
             {
                 obj.operation = obj.ADD;
                 primitive.type = primitive.BOX;
@@ -161,17 +160,18 @@ int main(int argc, char **argv)
                 obj_height[obj.id] = height;
             }
             pose.position.z += height / 2;
-            
+
             if (!param && obj.id == obj_name)
             {
                 obj_height.erase(obj_name);
                 continue;
-            }                
+            }
 
             obj.primitive_poses.push_back(pose);
             collision_objects.push_back(obj);
         }
         planning_scene_interface.applyCollisionObjects(collision_objects);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // otherwise too many calls 
     }
 
     rclcpp::shutdown();

@@ -41,10 +41,6 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include "simple_interface/srv/set_object_active.hpp"
 
-using std::placeholders::_1;
-
-using namespace Eigen;
-using namespace std::chrono_literals;
 
 
 std::pair<const std::string, moveit_msgs::msg::CollisionObject> choose_target(moveit::planning_interface::PlanningSceneInterface *ps, std::set<std::string> * processed)
@@ -83,36 +79,47 @@ int main(int argc, char **argv)
 
     auto start_pose = simple_moveit->get_move_group()->getCurrentPose().pose;
     std::set<std::string> processed{banned};
-    auto object = choose_target(simple_moveit->get_planning_scene_interface(), &processed);
+    for (int i = 1; i <= 5; i++)
+    {
+        auto object = choose_target(simple_moveit->get_planning_scene_interface(), &processed);
 
-    auto obj_name = object.first;
-    auto collision_object = object.second;
+        auto obj_name = object.first;
+        auto collision_object = object.second;
 
-    // set_service(service_node, client, true, obj_name); // advertise to collision
-    auto pose = collision_object.primitive_poses[0];
-    Quaternionf q = AngleAxisf(3.14, Vector3f::UnitX()) * AngleAxisf(0, Vector3f::UnitY()) * AngleAxisf(0.785, Vector3f::UnitZ());
-    pose.orientation.w = q.w();
-    pose.orientation.x = q.x();
-    pose.orientation.y = q.y();
-    pose.orientation.z = q.z();
+        // set_service(service_node, client, true, obj_name); // advertise to collision
+        auto pose = collision_object.primitive_poses[0];
+        Eigen::Quaternionf q = Eigen::AngleAxisf(3.14, Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(0, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(0.785, Eigen::Vector3f::UnitZ());
+        pose.orientation.w = q.w();
+        pose.orientation.x = q.x();
+        pose.orientation.y = q.y();
+        pose.orientation.z = q.z();
+        pose.position.z += 0.1;
 
-    simple_moveit->pick(obj_name, pose);
-    simple_moveit->set_obj_active(obj_name, true);
 
+        simple_moveit->pick(obj_name, pose);
+
+        pose.position.x = 0.6;
+        pose.position.y = 0.0;
+        pose.position.z = (0.27) + i*0.1; 
+        
+
+        simple_moveit->place(obj_name, pose);
+
+        
+        collision_object = simple_moveit->get_planning_scene_interface()->getObjects({obj_name})[obj_name];
+        auto new_pose = collision_object.primitive_poses[0];
+
+        if ((new_pose.position.x < pose.position.x - 0.05) || (pose.position.x + 0.05 < new_pose.position.x))
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Cube is not in bound");
+        }
+        else
+        {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Task completed Succesfully");
+        }
+    }
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going to start pose");
     simple_moveit->goto_pose(simple_moveit->get_move_group(), start_pose);
-    
-    collision_object = simple_moveit->get_planning_scene_interface()->getObjects({obj_name})[obj_name];
-    auto new_pose = collision_object.primitive_poses[0];
-
-    if ((new_pose.position.x < pose.position.x - 0.05) || (pose.position.x + 0.05 < new_pose.position.x))
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Cube is not in bound");
-    }
-    else
-    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Task completed Succesfully");
-    }
     rclcpp::shutdown();
     return 0;
 }
