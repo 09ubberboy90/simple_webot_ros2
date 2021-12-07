@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
         pose.position.x = 0.6;
         pose.position.y = 0.0;
-        pose.position.z = (0.37) + i*0.05; 
+        pose.position.z = (0.4) + i*0.05; 
         
 
         success = simple_moveit->place(obj_name, pose);
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
         }
     }
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going to start pose");
-    simple_moveit->goto_pose(simple_moveit->get_move_group(), start_pose);
+    simple_moveit->goto_pose(start_pose);
     rclcpp::shutdown();
     return 0;
 }
