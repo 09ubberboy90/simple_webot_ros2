@@ -12,7 +12,6 @@
 
     <webots>
         <plugin type="webots_driver.panda_driver.PandaDriver">
-            <parameterExample>someValue</parameterExample>
         </plugin>
         <plugin type="webots_ros2_control::Ros2Control" />
 

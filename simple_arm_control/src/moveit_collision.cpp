@@ -59,13 +59,19 @@ void get_model_list_handler(std::shared_ptr<ServiceClient<gazebo_msgs::srv::GetM
     auto model_request = model_client->create_request_message();
     auto state_request = state_client->create_request_message();
     auto model_response = model_client->service_caller(model_request);
-    for (auto name : model_response->model_names)
+    if (model_response->success)
     {
-        if (banned.count(name) == 0)
+        for (auto name : model_response->model_names)
         {
-            state_request->name = name;
-            auto state_response = state_client->service_caller(state_request);
-            get_model_state_handler(state_response, states);
+            if (banned.count(name) == 0)
+            {
+                state_request->name = name;
+                auto state_response = state_client->service_caller(state_request);
+                if (state_response->success)
+                {
+                    get_model_state_handler(state_response, states);
+                }
+            }
         }
     }
 }

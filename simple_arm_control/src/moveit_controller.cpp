@@ -56,9 +56,13 @@ std::pair<const std::string, moveit_msgs::msg::CollisionObject> choose_target(mo
 
     int rand_index = rand() % (int) collision_objects.size();
     auto chosen = *std::next(std::begin(collision_objects),rand_index-1);
+    if (chosen.first.empty())
+    {
+        return choose_target(ps, processed);
+    }
     
     processed->emplace(chosen.first);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Chosen target is %s", chosen.first.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("panda_moveit_controller"), "Chosen target is %s", chosen.first.c_str());
     return chosen;
 
 }
@@ -69,13 +73,12 @@ int main(int argc, char **argv)
 {
 
     rclcpp::init(argc, argv);
-    auto simple_moveit = std::make_shared<SimpleMoveIt>("panda_group_interface");
+    auto simple_moveit = std::make_shared<SimpleMoveIt>("panda_moveit_controller");
     // For current state monitor
-    rclcpp::executors::SingleThreadedExecutor executor;
-    // executor.add_node(service_node);
-    executor.add_node(simple_moveit);
-    // executor.add_node(parameter_server);
-    std::thread([&executor]() { executor.spin(); }).detach();
+    std::thread([&simple_moveit]() { 
+        rclcpp::spin(simple_moveit);
+        rclcpp::shutdown();}
+    ).detach();
 
     auto start_pose = simple_moveit->get_move_group()->getCurrentPose().pose;
     std::set<std::string> processed{banned};
@@ -104,12 +107,12 @@ int main(int argc, char **argv)
         }
         
 
-        pose.position.x = 0.6;
+        pose.position.x = 0.5;
         pose.position.y = 0.0;
         pose.position.z = (0.4) + i*0.05; 
         
 
-        success = simple_moveit->place(obj_name, pose);
+        success = simple_moveit->place(obj_name, pose, 0.15);
 
         
         if (!success)
@@ -121,15 +124,13 @@ int main(int argc, char **argv)
 
         if ((new_pose.position.x < pose.position.x - 0.05) || (pose.position.x + 0.05 < new_pose.position.x))
         {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Cube is not in bound");
+            RCLCPP_ERROR(rclcpp::get_logger("panda_moveit_controller"), "Cube is not in bound");
         }
         else
         {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Task completed Succesfully");
+            RCLCPP_INFO(rclcpp::get_logger("panda_moveit_controller"), "Task completed Succesfully");
         }
     }
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going to start pose");
+    RCLCPP_INFO(rclcpp::get_logger("panda_moveit_controller"), "Going to start pose");
     simple_moveit->goto_pose(start_pose);
-    rclcpp::shutdown();
-    return 0;
 }

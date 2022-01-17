@@ -88,7 +88,7 @@ def generate_launch_description():
         "publish_state_updates": True,
         "publish_transforms_updates": True,
     }
-    sim_time = {'use_sim_time': False}
+    sim_time = {'use_sim_time': True}
 
     # Start the actual move_group node/action server
     run_move_group_node = Node(

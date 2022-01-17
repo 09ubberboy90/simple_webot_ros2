@@ -31,65 +31,30 @@ def generate_launch_description():
         mode="realtime",
         gui="True"
     )
-
-    # The node which interacts with a robot in the Webots simulation is located in the `webots_ros2_driver` package under name `driver`.
-    # It is necessary to run such a node for each robot in the simulation.
-    # Typically, we provide it the `robot_description` parameters from a URDF file and `ros2_control_params` from the `ros2_control` configuration file.
     robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[robot_description, {'use_sim_time': True}],
+        
     )    
     webots_robot_driver = Node(
         package='webots_ros2_driver',
         executable='driver',
         parameters=[
             robot_description,
-            ros2_control_params
+            ros2_control_params,
         ],
     )
 
-
-    ros2_control_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[robot_description, ros2_control_params],
-        output={
-            "stdout": "screen",
-            "stderr": "screen",
-        },
-    )
-
-
-    load_controllers = []
-    for controller in [
-        "panda_arm_controller",
-        "panda_hand_controller",
-        "joint_state_broadcaster",
-    ]:
-        load_controllers += [
-            ExecuteProcess(
-                cmd=["ros2 control load_start_controller {}".format(controller)],
-                shell=True,
-                output="screen",
-            )
-        ]
-
-    # Standard ROS 2 launch description
     return launch.LaunchDescription([
-
         # Start the Webots node
         webots,
-
         # Start the Webots robot driver
         webots_robot_driver,
-
         # Start the robot_state_publisher
         robot_state_publisher,
-        # ros2_control_node,
-
         # This action will kill all nodes once the Webots simulation has exited
         launch.actions.RegisterEventHandler(
             event_handler=launch.event_handlers.OnProcessExit(

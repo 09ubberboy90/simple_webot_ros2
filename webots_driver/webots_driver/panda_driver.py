@@ -11,27 +11,22 @@ class PandaDriver():
     # - The `webots_node` argument contains a reference on a Supervisor instance.
     # - The `properties` argument is a dictionary created from the XML tags.
     def init(self, webots_node, properties):
-        # This will print the parameter from the URDF file.
-        #
-        #     `{ 'parameterExample': 'someValue' }`
-        #
-        print('properties:', properties)
-
-        # The robot property is a reference to a Supervisor instance.
-        # It allows you to access the standard Webots API.
-        # See: https://cyberbotics.com/doc/reference/supervisor
-        print('basic timestep:', int(webots_node.robot.getBasicTimeStep()))
-        print('robot name:', webots_node.robot.getName())
-        print('is robot?', webots_node.robot.getType() == Node.ROBOT)
-
-        self.__robot = webots_node.robot
-
         # Unfortunately, we cannot get an instance of the parent ROS node.
         # However, we can create a new one.
         rclpy.init(args=None)
-        self.__node = rclpy.node.Node('plugin_node_example')
-        self.__publisher = self.__node.create_publisher(Float32, 'custom_time', 1)
+        self._node = rclpy.node.Node('panda_driver')
+
+        self._robot = webots_node.robot
+        self._publisher = self._node.create_publisher(Float32, 'clock', 1)
+
+        # self._node.get_logger().info(f'properties: {properties}')
+
+        # self._node.get_logger().info(f'basic timestep: {int(webots_node.robot.getBasicTimeStep())}')
+        # self._node.get_logger().info(f'robot name: {webots_node.robot.getName()}')
+        # self._node.get_logger().info(f'is robot? {webots_node.robot.getType() == Node.ROBOT}')
+
+
 
     # The `step` method is called at every step.
     def step(self):
-        self.__publisher.publish(Float32(data=self.__robot.getTime()))
+        self._publisher.publish(Float32(data=self._robot.getTime()))

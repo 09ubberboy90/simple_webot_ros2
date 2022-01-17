@@ -2,14 +2,11 @@ import rclpy
 import os
 import sys
 from webots_ros2_core.webots_node import WebotsNode
-
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import GetEntityState, GetModelList
 from gazebo_msgs.msg import EntityState
 import pyquaternion 
-
-
 class SpawnerNode(WebotsNode):
     def __init__(self, args=None):
         super().__init__("spawner", args)
@@ -22,22 +19,19 @@ class SpawnerNode(WebotsNode):
             GetModelList, 'get_model_list', self.get_model_list)
         self.objs = {}
         # self.robot.simulationSetMode(self.robot.SIMULATION_MODE_FAST)
-        self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57], offset=[0.7, 0, -0.25])
+        self.spawn_obj("worlds/Table.wbo", rotation = [1,0,0,1.57], position=[0.6, 0, -0.2])
         # for i in range(-5,6):
         #     for j in range(-5,6):
         #         print(f"Spawned at {i*0.5} {j*0.5}")
         #         self.spawn_obj("worlds/Cube.wbo", position = [i, 0, j])
-        for x in range(3, 6):
+        for x in range(2, 5):
             for y in range(-3, 4):
-                self.spawn_obj("worlds/Cube.wbo", [x/10, y/10, 0.25])
+                self.spawn_obj("worlds/Cube.wbo", [x/10, y/10, 0.45])
 
-    def spawn_obj(self, path, position=[0, 0, 0], offset=[0, 0, 0], rotation = [0,1,0,0]):
-        out = []
-        for i, j in zip(position, offset):
-            out.append(i+j)
+    def spawn_obj(self, path, position=[0, 0, 0], rotation = [0,1,0,0]):
         self.children.importMFNode(0, os.path.join(self.package_dir, path))
         obj = self.children.getMFNode(0)
-        obj.getField("translation").setSFVec3f(out)
+        obj.getField("translation").setSFVec3f(position)
         obj.getField("rotation").setSFRotation(rotation)
         self.objs[obj.getField("name").getSFString()] = obj
 
