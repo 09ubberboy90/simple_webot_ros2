@@ -45,7 +45,7 @@ except ModuleNotFoundError:
 
 import _thread
 import threading
-
+import re
 class Webots():
     def __init__(self):
         self.name = "webots"
@@ -56,7 +56,7 @@ class Webots():
             "ros2 launch webots_driver collision.launch.py",
             "ros2 launch webots_driver moveit_controller.launch.py",
         ]
-        self.delays = [5, 10, 5]
+        self.delays = [5, 7] # it doesn't matter the timing for the rest it doesn't launch anyway
 
 
 
@@ -85,7 +85,7 @@ def interrupt_handler(interrupt_event):
 
 def run_com(w, q, com):
     os.dup2(w.fileno(), 1)
-    proc = subprocess.Popen("exec " + com, shell=True)
+    proc = subprocess.Popen(com, shell=True, env=os.environ)
     q.put(proc.pid)
 
 
@@ -94,7 +94,8 @@ def run_recorder(q, interrupt_event, simulator, idx, path):
     task.start()
     try:
         proc_monitor.run(simulator=simulator, idx=idx, path=path)
-    except:
+    except Exception as e:
+        print(e)
         q.put("Exit")
 
 
@@ -145,14 +146,15 @@ def run(sim, idx, path):
             while True:
                 text = reader.readline()
                 f.write(text)
-                timing = 0
                 if "Task executed successfully" in text:
-                    log(out, f"Completed for {idx} in {timing}")
+                    timing = [int(s) for s in re.findall(r'\b\d+\b', text)][-1]
+                    log(out, f"Completed for {idx} in {timing} ms")
                     signal.alarm(0)
                     kill_proc_tree(pids, procs, interrupt_event)
                     return 1, 0
-                if "Cube is not in bound" in text: 
-                    log(out, f"Failed for {idx} in {timing}")
+                if "Task failed" in text: 
+                    numbers = [int(s) for s in re.findall(r'\b\d+\b', text)]
+                    log(out, f"Failed for {idx} in {numbers[-1]} ms with {numbers[-2]} cube stacked")
                     signal.alarm(0)
                     kill_proc_tree(pids, procs, interrupt_event)
                     return 0, 1
@@ -183,10 +185,10 @@ def main(args=None):
     except Exception as e:
         print(e)
         print("Folder exist. Overwriting...")
-    if os.path.exists(path+f"{sim.name}/run.txt"):
-        os.remove(path+f"{sim.name}/run.txt")
+    if os.path.exists(path+f"/{sim.name}/run.txt"):
+        os.remove(path+f"/{sim.name}/run.txt")
 
-    for idx in range(iteration):
+    for idx in range(1, iteration+1):
         a, b = run(sim, idx, path)
         succ += a
         fail += b

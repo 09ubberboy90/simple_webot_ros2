@@ -32,13 +32,15 @@ import os
 import signal
 import sys
 from collections import defaultdict
+import threading
 
 import psutil
 import rclpy
+from rclpy.node import Node
 
 
 
-class ProcMonitor():
+class ProcMonitor(Node):
     """
     Create the main window and connect the menu bar slots.
     """
@@ -61,7 +63,7 @@ class ProcMonitor():
     def update_missing(self):
         length = len(self.procs.keys())
         if self.counter < 10:
-            if self.current_length >= length:
+            if self.current_length >= length and length > 0:
                 self.counter += 1
             else:
                 self.counter = 0
@@ -102,87 +104,19 @@ class ProcMonitor():
                 name = name+"_"+str(counter)
             self.name[pid] = name
 
-        with open(self.path + f"{self.sim_name}/cpu/cpu_{self.idx}.csv", "w") as f:
+        with open(self.path + f"/{self.sim_name}/cpu/cpu_{self.idx}.csv", "w") as f:
             for pid, el in self.cpu_dict.items():
                 f.write(f"{self.name[pid]},{','.join(str(v) for v in el)}\n")
-        with open(self.path + f"{self.sim_name}/ram/ram_{self.idx}.csv", "w") as f:
+        with open(self.path + f"/{self.sim_name}/ram/ram_{self.idx}.csv", "w") as f:
             for pid, el in self.ram_dict.items():
                 f.write(f"{self.name[pid]},{','.join(str(v) for v in el)}\n")
         sys.exit(0)
 
-
-allowed_gazebo = [
-    "throw_moveit",
-    "fake_joint_driver_node",
-    "gzclient",
-    "gzserver",
-    "mongod",
-    "move_group",
-    "moveit_collision",
-    "python3",
-    "robot_state_publisher",
-    "ros2",
-    "rviz2",
-    "static_transform_publisher",
-    "run_recording",
-    "moveit_controller",
-]
-
-allowed_webots = [
-    "throw_moveit",
-    "fake_joint_driver_node",
-    "mongod",
-    "move_group",
-    "python3",
-    "robot_state_publisher",
-    "ros2",
-    "rviz2",
-    "static_transform_publisher",
-    "webots",
-    "webots-bin",
-    "moveit_collision",
-    "run_recording",
-    "moveit_controller",
-]
-allowed_ignition = [
-    "move_group",
-    "parameter_bridge",
-    "python3",
-    "ros2",
-    "ruby",
-    "rviz2",
-    "run_recording"
-]
-allowed_vr = [
-"fake_joint_driver_node",
-"parameter_bridge",
-"republisher",
-"robot_state_publisher",
-"ros2",
-"ruby",
-"rviz2",
-"servo_pose_tracking_demo",
-"static_transform_publisher",
-"run_recording"
-]
-
-
 def run(path, simulator="webots", idx=0):
-
-    if "webots" == simulator:
-        allowed = allowed_webots[1:]
-    elif "gazebo" == simulator:
-        allowed = allowed_gazebo[1:]
-    elif "webots_throw" == simulator:
-        allowed = allowed_webots[:-1]
-    elif "gazebo_throw" == simulator:
-        allowed = allowed_gazebo[:-1]
-    elif "vr" == simulator:
-        allowed = allowed_vr
-    else:
-        allowed = allowed_ignition
-
-    monitor = ProcMonitor(allowed, idx, simulator, path)
+    rclpy.init(args=None)
+    monitor = ProcMonitor([], idx, simulator, path)
     signal.signal(signal.SIGINT, lambda sig, frame: monitor.dump_values())
     signal.signal(signal.SIGTERM, lambda sig, frame: monitor.dump_values())
+    rclpy.spin(monitor)
+    rclpy.shutdown()
 

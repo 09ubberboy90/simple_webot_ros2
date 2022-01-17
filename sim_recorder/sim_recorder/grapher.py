@@ -107,16 +107,16 @@ with open(os.path.join(os.path.dirname(__file__), "../data", folder, "run.txt"))
     for el in f.readlines():
         splitted = el.split()
         if not "Timeout" == splitted[0]:
-            runtime += float(splitted[4])
+            runtime += int(splitted[4])/1000
             total += 1
         if "Completed" == splitted[0]:
             success += 1
-            if float(splitted[4]) > maxtime:
-                maxtime = float(splitted[4])
+            if int(splitted[4])/1000 > maxtime:
+                maxtime = int(splitted[4])/1000
         if "Failed" == splitted[0]:
             failure += 1
-            if float(splitted[4]) > fmaxtime:
-                fmaxtime = float(splitted[4])
+            if int(splitted[4])/1000 > fmaxtime:
+                fmaxtime = int(splitted[4])/1000
 
     if total != 0:
         mean = runtime/total
@@ -126,7 +126,7 @@ with open(os.path.join(os.path.dirname(__file__), "../data", folder, "run.txt"))
     f.seek(0)
     for el in f.readlines():
         if not "Timeout" == el.split()[0]:
-            val = float(el.split()[4])
+            val = int(el.split()[4])/1000
 
             mean_square += pow(val-mean, 2)
     if total != 0:
