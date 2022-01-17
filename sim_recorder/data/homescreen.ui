@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1072</width>
+    <height>710</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1072</width>
+    <height>710</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>11</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Grapher</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>fpd_explorer/frontend/res/icon.png</normaloff>fpd_explorer/frontend/res/icon.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="button">
+      <property name="text">
+       <string>Confirm</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="button2">
+      <property name="text">
+       <string>Update Proccess</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="4">
+     <widget class="CpuFreqGraph" name="graph" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="CheckableComboBox" name="process">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>Processes</string>
+      </property>
+      <property name="statusTip">
+       <string>Processes</string>
+      </property>
+      <property name="whatsThis">
+       <string>Processes</string>
+      </property>
+      <property name="currentText">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QPushButton" name="dump">
+      <property name="text">
+       <string>Dump Selected</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CpuFreqGraph</class>
+   <extends>QWidget</extends>
+   <header>resource_monitor</header>
+   <container>1</container>
+   <slots>
+    <slot>changed_proc(QString)</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>CheckableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>combo_box</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_proc()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>793</x>
+     <y>26</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1067</x>
+     <y>59</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button2</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>update_proc_list()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>932</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1067</x>
+     <y>48</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button2</sender>
+   <signal>pressed()</signal>
+   <receiver>process</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>930</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>702</x>
+     <y>32</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>dump</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>dump_selected()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1014</x>
+     <y>15</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1070</x>
+     <y>25</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>change_proc()</slot>
+  <slot>update_proc_list()</slot>
+  <slot>dump_selected()</slot>
+ </slots>
+</ui>
