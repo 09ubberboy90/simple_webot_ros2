@@ -61,6 +61,8 @@ std::pair<const std::string, moveit_msgs::msg::CollisionObject> choose_target(mo
     }
     
     int rand_index = rand() % (int) collision_objects.size();
+    RCLCPP_INFO(rclcpp::get_logger("panda_moveit_controller"), "Chosen index is %d", rand_index);
+
     auto chosen = *std::next(std::begin(collision_objects),rand_index-1);
     if (chosen.first.empty())
     {
