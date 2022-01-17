@@ -11,8 +11,7 @@
     <xacro:panda_hand_ros2_control name="PandaHandWebotsControl"/>
 
     <webots>
-        <plugin type="webots_driver.panda_driver.PandaDriver">
-        </plugin>
+        <plugin type="webots_driver.panda_driver.PandaDriver"/>
         <plugin type="webots_ros2_control::Ros2Control" />
 
     </webots>

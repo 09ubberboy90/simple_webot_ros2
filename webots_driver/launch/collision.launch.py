@@ -36,12 +36,12 @@ def generate_launch_description():
     robot_description_semantic = {'robot_description_semantic': robot_description_semantic_config}
 
     kinematics_yaml = load_yaml('moveit_resources_panda_moveit_config', 'config/kinematics.yaml')
-
+    os.environ["WEBOTS_HOME"] = "/usr/local/webots"
     
-    webots_spawner = Node(name='webots_spawner',
+    webots_spawner = Node(name='spawner',
                             package='sim_spawner',
-                            executable='webots_spawner',
-                            output='screen')
+                            executable='spawner',
+                            output='screen',)
 
     moveit_collision = Node(name='moveit_collision',
                             package='simple_arm_control',
