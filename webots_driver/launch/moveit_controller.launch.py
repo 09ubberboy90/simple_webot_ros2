@@ -3,7 +3,6 @@ import yaml
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
-from webots_ros2_core.utils import get_webots_home, handle_webots_installation
 
 
 def load_file(package_name, file_path):
@@ -29,20 +28,25 @@ def load_yaml(package_name, file_path):
 
 
 def generate_launch_description():
-    webots_path = get_webots_home(show_warning=True)
-    if webots_path is None:
-        handle_webots_installation()
-        webots_path = get_webots_home()
-
     # planning_context
-    robot_description_config = load_file('moveit_resources_panda_description', 'urdf/panda.urdf')
-    robot_description = {'robot_description': robot_description_config}
+    robot_description_config = load_file("webots_driver", 
+        os.path.join(
+            "urdf",
+            "panda.urdf",
+        )
+    )
+    robot_description = {"robot_description": robot_description_config}
 
-    robot_description_semantic_config = load_file('moveit_resources_panda_moveit_config', 'config/panda.srdf')
-    robot_description_semantic = {'robot_description_semantic': robot_description_semantic_config}
+    robot_description_semantic_config = load_file(
+        "webots_driver", "config/panda.srdf"
+    )
+    robot_description_semantic = {
+        "robot_description_semantic": robot_description_semantic_config
+    }
 
-    kinematics_yaml = load_yaml('moveit_resources_panda_moveit_config', 'config/kinematics.yaml')
-
+    kinematics_yaml = load_yaml(
+        "moveit_resources_panda_moveit_config", "config/kinematics.yaml"
+    )
     # MoveGroupInterface demo executable
     run_move_group_demo = Node(name='move_group',
                                package='simple_arm_control',
@@ -51,8 +55,7 @@ def generate_launch_description():
                                parameters=[robot_description,
                                            robot_description_semantic,
                                            kinematics_yaml,
-                                           {"action_node_name": "/panda_arm_controller/follow_joint_trajectory"},
-                                           {"use_spawn_obj": True},{"gazebo": False}, {"use_sim_time":False}],
+                                           ],
                             #   prefix=['gdbserver localhost:3000']
                             )
     
