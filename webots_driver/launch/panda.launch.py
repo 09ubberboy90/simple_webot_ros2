@@ -13,7 +13,7 @@ def generate_launch_description():
         os.path.join(
             pkg_share,
             "urdf",
-            "panda_webots.urdf.xacro",
+            "panda.urdf.xacro",
         )
     )
     robot_description = {"robot_description": robot_description_config.toxml()}
