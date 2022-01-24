@@ -73,7 +73,6 @@ class ProcMonitor(Node):
                 proc.cpu_percent()  # discard value
                 proc.cpu_percent()  # discard value
                 self.counter += 1
-                print(f"{name}, {self.counter}")
 
     def add(self, array, type, pid, data):
         if self.size == self.capacity[type]:
@@ -131,7 +130,7 @@ def run(path, simulator="isaac", idx=0):
     rclpy.init(args=None)
     allowed = ['driver', 'mongod', 'move_group', 'moveit_collision', 'moveit_controller', 'python3', 
                 'robot_state_publisher','run_recording', 'rviz2', 'spawner', 'static_transform_publisher', 
-                'webots-bin']  # Needed since they start before recording starts
+                'webots-bin', "ros2"]  # Needed since they start before recording starts
     if simulator == "isaac":
         allowed.extend(["kit"])
     monitor = ProcMonitor(allowed, idx, simulator, path)

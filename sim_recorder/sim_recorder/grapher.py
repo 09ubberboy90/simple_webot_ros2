@@ -163,7 +163,6 @@ def create_figure(figname, printing=False):
 
         total = None
         length = 0
-        print(sorted_dict.keys())
         for ls in sorted_dict.values():
             tmp = max(map(len, ls))
             if tmp > length:
