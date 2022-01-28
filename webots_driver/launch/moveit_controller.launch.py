@@ -50,7 +50,7 @@ def generate_launch_description():
         "moveit_resources_panda_moveit_config", "config/kinematics.yaml"
     )
     # MoveGroupInterface demo executable
-    run_move_group_demo = Node(name='move_group',
+    moveit_controller = Node(name='moveit_controller',
                                package='simple_arm_control',
                                executable='moveit_controller',
                                output='screen',
@@ -62,4 +62,4 @@ def generate_launch_description():
                             #   prefix=['gdbserver localhost:3000']
                             )
     
-    return LaunchDescription([run_move_group_demo])
+    return LaunchDescription([moveit_controller])

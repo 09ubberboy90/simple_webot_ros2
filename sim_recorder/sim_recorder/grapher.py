@@ -335,7 +335,7 @@ def create_clock_plot(figname):
         warnings.simplefilter("ignore", category=RuntimeWarning)
         y[0][y[0] < 0] = 0 # clamp to zero
 
-    ax.plot(np.nanmax(time, axis=0),meanarr ,label="Webots",)
+    ax.plot(np.nanmax(time, axis=0),y[0] ,label=folder,)
     
     ax.legend()
     ax.set_ylabel("Real time factor (%)")
@@ -346,5 +346,5 @@ def create_clock_plot(figname):
                              f"../data/{folder}/{figname}"), bbox_inches="tight")
 
 create_clock_plot(f"{folder}_clock.svg")
-# create_figure(f"{folder}_smooth.svg", True)
-# create_figure(f"{folder}_no_smooth.svg",)
+create_figure(f"{folder}_smooth.svg", True)
+create_figure(f"{folder}_no_smooth.svg",)
