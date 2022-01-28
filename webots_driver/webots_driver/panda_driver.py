@@ -12,3 +12,5 @@ class PandaDriver():
         rclpy.init(args=None)
         self._node = rclpy.node.Node('panda_driver')
 
+    def step(self):
+        pass

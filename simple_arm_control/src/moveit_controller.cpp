@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 
     float start_column_y = 0.0 - (columns-1) / 10.0; // force float division
 
-    for (int i = 0; i <= columns * height; i++)
+    for (int i = 0; i < columns * height; i++)
     {
         auto object = choose_target(simple_moveit->get_planning_scene_interface(), &processed);
 

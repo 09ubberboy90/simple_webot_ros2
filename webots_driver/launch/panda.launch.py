@@ -46,6 +46,10 @@ def generate_launch_description():
             robot_description,
             ros2_control_params,
         ],
+        remappings=[
+            ("clock", "panda/clock")
+        ]
+
     )
 
     return launch.LaunchDescription([
