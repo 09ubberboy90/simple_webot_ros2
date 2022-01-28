@@ -66,6 +66,8 @@ types = defaultdict(list)
 for el in tmp:
     if "ram" in el:
         types["ram"].append(el)
+    elif "clock" in el:
+        types["clock"].append(el)
     else:
         types["cpu"].append(el)
 
@@ -295,28 +297,45 @@ def create_figure(figname, printing=False):
                              f"../data/{folder}/{figname}"), bbox_inches="tight")
 
 def create_clock_plot(figname):
-    with open(os.path.join(os.path.dirname(__file__), "../data", folder, "clock.csv")) as f:
-        realtime = f.readline().split(",")
-        simtime = f.readline().split(",")
-    
-    realtime = np.array([int(i) for i in realtime])
-    simtime = np.array([int(i) for i in simtime])
-    realtime -= realtime[0]
+    arr = []
+    time = []
+    max_length = 0
     fig, ax = plt.subplots()
+    for name in types["clock"]:
+        with open(name) as f:
+            tmp = f.readline().strip().split(",")
+            tmp2 = f.readline().strip().split(",")
+            realtime = np.array([int(i) for i in tmp])
+            simtime = np.array([int(i) for i in tmp2])
+        realtime -= realtime[0]
 
-    sim_delta = []
-    real_delta = []
-    for el in range(simtime.shape[0]-1):
-        sim_delta.append(simtime[el]-simtime[el+1])
-    for el in range(realtime.shape[0]-1):
-        real_delta.append(realtime[el]-realtime[el+1])    
-        
-    sim_delta = np.array(sim_delta)
-    real_delta = np.array(real_delta)
+        sim_delta = []
+        real_delta = []
+        for el in range(simtime.shape[0]-1):
+            sim_delta.append(simtime[el]-simtime[el+1])
+        for el in range(realtime.shape[0]-1):
+            real_delta.append(realtime[el]-realtime[el+1])    
+            
+        sim_delta = np.array(sim_delta)
+        real_delta = np.array(real_delta)
 
-    div = sim_delta/real_delta
+        div = sim_delta/real_delta
+        if div.shape[0] > max_length:
+            max_length = div.shape[0]
+        arr.append(div)
+        time.append(realtime[:-1]/pow(10,9))
 
-    ax.plot(realtime[:-1]/pow(10,9), div,label="Webots",)
+    arr = np.array([np.concatenate((np.full(max_length-xi.shape[0], np.nan), xi)) for xi in arr])
+    time = np.array([np.concatenate((np.full(max_length-xi.shape[0], np.nan), xi)) for xi in time])
+    meanarr = np.nanmean(arr, axis=0)
+    y = signal.savgol_filter(meanarr,
+                            SMOOTH_INDEX,  # window size used for filtering    
+                            POLY_INDEX),  # order of fitted polynomial
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        y[0][y[0] < 0] = 0 # clamp to zero
+
+    ax.plot(np.nanmax(time, axis=0),meanarr ,label="Webots",)
     
     ax.legend()
     ax.set_ylabel("Real time factor (%)")

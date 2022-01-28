@@ -104,6 +104,7 @@ class ProcMonitor(Node):
 
 
     def dump_values(self):
+        print("dump_values")
         self.name = {}
         for pid, (name, _) in self.pids.items():
             new_p = name
@@ -114,7 +115,6 @@ class ProcMonitor(Node):
             if counter != 0:
                 name = name+"_"+str(counter)
             self.name[pid] = name
-        print(np.count_nonzero(np.isnan(self.cpu)))
         with open(self.path + f"/{self.sim_name}/cpu/cpu_{self.idx}.csv", "w") as f:
             for pid, (name, idx) in self.pids.items():
                 f.write(name + "," + ",".join(map(str, self.cpu[idx, :self.size].tolist())) + "\n")
@@ -143,5 +143,6 @@ def run(path, simulator="isaac", idx=0):
     monitor = ProcMonitor(allowed, idx, simulator, path)
     signal.signal(signal.SIGINT, lambda sig, frame: monitor.dump_values())
     signal.signal(signal.SIGTERM, lambda sig, frame: monitor.dump_values())
+
     rclpy.spin(monitor)
     rclpy.shutdown()

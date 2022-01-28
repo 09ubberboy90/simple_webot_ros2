@@ -71,7 +71,10 @@ def kill_proc_tree(pids, procs, interrupt_event, including_parent=False):
         except:
             pass
     time.sleep(2)  # Wait for everything ot close to prevent broken_pipe
-    for proc in procs[:-1]:
+    for proc in procs[:2]:
+        os.kill(proc.pid,signal.SIGINT)
+        proc.terminate()
+    for proc in procs[2:]:
         proc.kill()
     time.sleep(2)  # Wait for everything ot close to prevent broken_pipe
 
@@ -115,12 +118,13 @@ def generate_procs(simulator, commands, r, w, q, interrupt_event, idx, path):
 def start_proces(delay, procs, q):
     pids = []
     for _ in range(len(procs) - len(delay)):
-        delay.append(0)
+        delay.insert(0,0)
+        delay.insert(0,0)
     for idx, p in enumerate(procs):
         p.start()
         time.sleep(delay[idx])
 
-    for proc in range(len(procs)-1):
+    for proc in range(len(procs)-2):
         pids.append(q.get())
 
     return pids
@@ -163,6 +167,7 @@ def run(sim, idx, path):
                     return 0
         except:
             log(out,f"Timeout for {idx} after {time.time()-start_time} \n")
+            signal.alarm(0) 
             kill_proc_tree(pids, procs, interrupt_event)
             return 1
 
