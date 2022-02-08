@@ -36,11 +36,11 @@ def generate_launch_description():
         ),)
 
     timer_2 = IncludeLaunchDescription(LaunchDescriptionSource(LaunchDescription([  # hack since you can't have recursive timer
-        collision,
+        moveit_controller,
         TimerAction(
             period=10.,
             actions=[
-                moveit_controller,
+                collision,
             ])
     ])))
 

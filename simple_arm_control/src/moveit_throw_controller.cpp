@@ -88,7 +88,11 @@ int main(int argc, char **argv)
     processed.emplace("table");
     processed.emplace("target");
 
-    auto poses = simple_moveit->get_planning_scene_interface()->getObjects();
+    std::map<std::string, moveit_msgs::msg::CollisionObject> poses;
+    do
+    {
+        poses = simple_moveit->get_planning_scene_interface()->getObjects();
+    } while (poses.size() <= 0);
 
     RCLCPP_INFO(rclcpp::get_logger("panda_moveit_controller"), "Starting timer");
     auto start = std::chrono::steady_clock::now();
