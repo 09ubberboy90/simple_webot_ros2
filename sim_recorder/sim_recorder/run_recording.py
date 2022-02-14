@@ -35,6 +35,7 @@ import subprocess
 import sys
 import time
 from multiprocessing import Event, Pipe, Process, Queue
+import argparse
 
 import psutil
 
@@ -49,11 +50,12 @@ import _thread
 import threading
 import re
 class Webots():
-    def __init__(self):
+    def __init__(self, gui=False):
         self.name = "webots"
         self.timeout = 900 # 15 minute
         self.commands = [
-            "ros2 launch webots_driver stack_cubes.launch.py",
+            f"ros2 launch webots_driver stack_cubes.launch.py gui:={str(gui).lower()}"
+
         ]
         self.delays = [5] #added the timer delay from launch file + 10 s for robot movement
 
@@ -122,6 +124,7 @@ def start_proces(delay, procs, q):
         delay.insert(0,0)
     for idx, p in enumerate(procs):
         p.start()
+        print(p.name)
         time.sleep(delay[idx])
 
     for proc in range(len(procs)-2):
@@ -174,16 +177,18 @@ def run(sim, idx, path):
 
 def main(args=None):
     fail = 0
-    start_idx = 1
-    sim = Webots()
+    parser = argparse.ArgumentParser(description='Sim recorder parameters')
+    parser.add_argument("-i", '--iterations', type=int, default=1,
+                        help='Number of iterations of the simulation')
+    parser.add_argument("-s", '--start-index', type=int, default=1,
+                        help='Allow to start the simulation at a different index then 1')
+    parser.add_argument('--headless', action='store_true',
+                        help='Whetever to render to a GUI or not')
 
-    if len(sys.argv) == 2:
-        iteration = int(sys.argv[1])
-    elif len(sys.argv) == 3:
-        iteration = int(sys.argv[1])
-        start_idx = int(sys.argv[2])
-    else:
-        iteration = 1
+    args = parser.parse_args()
+    gui = True if not args.headless else False
+    sim = Webots(gui)
+
     dir_path = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(dir_path, "..")
     try:
@@ -214,9 +219,9 @@ def main(args=None):
     if os.path.exists(path+f"/{sim.name}/run.txt"):
         os.remove(path+f"/{sim.name}/run.txt")
 
-    for idx in range(start_idx, iteration+1):
+    for idx in range(args.start_index, args.iterations+1):
         fail += run(sim, idx, path)
-    print(f"Completed {iteration-fail}; Timeout {fail}")
+    print(f"Completed {args.iterations-fail}; Timeout {fail}")
 
 
 if __name__ == "__main__":
