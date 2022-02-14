@@ -29,7 +29,7 @@ def generate_launch_description():
     webots = WebotsLauncher(
         world=os.path.join(pkg_share, 'worlds', 'panda.wbt'),
         mode="realtime",
-        gui="True"
+        gui="False"
     )
     robot_state_publisher = Node(
         package="robot_state_publisher",
