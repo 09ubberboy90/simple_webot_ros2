@@ -51,11 +51,10 @@ import threading
 import re
 class Webots():
     def __init__(self, gui=False):
-        self.name = "webots"
+        self.name = "webots" + ("_gui" if gui else "")
         self.timeout = 900 # 15 minute
         self.commands = [
             f"ros2 launch webots_driver stack_cubes.launch.py gui:={str(gui).lower()}"
-
         ]
         self.delays = [5] #added the timer delay from launch file + 10 s for robot movement
 
