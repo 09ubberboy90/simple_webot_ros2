@@ -26,15 +26,15 @@ class SpawnerNode(WebotsNode):
 
         self.objs = {}
         # self.robot.simulationSetMode(self.robot.SIMULATION_MODE_FAST)
-        self.spawn_obj("worlds/Cube.wbo", position=[1.5,0.065,0.025])
         
-        self.spawn_obj("worlds/Sphere.wbo", position=[0.5,0.0,0.025], name="target") # target must be second to spawn
+        self.spawn_obj("worlds/Cube.wbo", position=[0.5,0.0,0.025], name="target") # target must be second to spawn
 
-        self.spawn_obj("worlds/Cube.wbo", position=[1.5,0.0,0.025])
-        self.spawn_obj("worlds/Cube.wbo", position=[1.5,-0.065,0.025])
-        self.spawn_obj("worlds/Cube.wbo", position=[1.5,-0.0335,0.075])
-        self.spawn_obj("worlds/Cube.wbo", position=[1.5,0.0335,0.075])
-        self.spawn_obj("worlds/Cube.wbo", position=[1.5,0.0,0.135])
+        self.spawn_obj("worlds/Cube.wbo", position=[1.4,0.065,0.025])
+        self.spawn_obj("worlds/Cube.wbo", position=[1.4,0.0,0.025])
+        self.spawn_obj("worlds/Cube.wbo", position=[1.4,-0.065,0.025])
+        self.spawn_obj("worlds/Cube.wbo", position=[1.4,-0.0335,0.075])
+        self.spawn_obj("worlds/Cube.wbo", position=[1.4,0.0335,0.075])
+        self.spawn_obj("worlds/Cube.wbo", position=[1.4,0.0,0.135])
 
         # for x in range(-4, 5):
         #     for y in range(-4, 5):
