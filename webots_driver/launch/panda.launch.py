@@ -4,11 +4,9 @@ import launch
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from webots_ros2_core.webots_launcher import WebotsLauncher
-from launch.actions import ExecuteProcess
 import xacro
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('webots_driver')
@@ -29,16 +27,11 @@ def generate_launch_description():
     # - `gui` (bool): Whether to display GUI or not.
     # - `mode` (str): Can be `pause`, `realtime`, or `fast`.
     gui = LaunchConfiguration("gui")
-    bool = None
-    if IfCondition(gui):
-        bool = True
-    else:
-        bool = False
-    print(bool)
+    tmp = PythonExpression(['"False" if "', gui, '" == "false" else "True"'])
     webots = WebotsLauncher(
         world=os.path.join(pkg_share, 'worlds', 'panda.wbt'),
         mode="realtime",
-        gui=str(bool)
+        gui=tmp
     )
     robot_state_publisher = Node(
         package="robot_state_publisher",

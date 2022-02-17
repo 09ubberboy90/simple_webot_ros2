@@ -123,7 +123,6 @@ def start_proces(delay, procs, q):
         delay.insert(0,0)
     for idx, p in enumerate(procs):
         p.start()
-        print(p.name)
         time.sleep(delay[idx])
 
     for proc in range(len(procs)-2):
