@@ -54,7 +54,7 @@ bool SimpleMoveIt::pick(std::string name, geometry_msgs::msg::Pose pose, double 
     RCLCPP_INFO(rclcpp::get_logger("simple_moveit"), "Opening hand");
     success = this->change_gripper(gripper_state::opened);
     // aproach
-    RCLCPP_INFO(rclcpp::get_logger("simple_moveit"), "Approaching");
+    RCLCPP_INFO(rclcpp::get_logger("simple_moveit"), "Approaching pick");
     pose.position.z += approach_distance;
     success = this->goto_pose(pose);
     //remove collision object
@@ -80,7 +80,7 @@ bool SimpleMoveIt::place(std::string name, geometry_msgs::msg::Pose pose, double
 {
     bool success = true;
     // aproach
-    RCLCPP_INFO(rclcpp::get_logger("simple_moveit"), "Approaching");
+    RCLCPP_INFO(rclcpp::get_logger("simple_moveit"), "Approaching place");
     pose.position.z += approach_distance;
     success = this->goto_pose(pose);
     //go in position
