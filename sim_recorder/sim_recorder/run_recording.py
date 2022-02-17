@@ -50,11 +50,11 @@ import _thread
 import threading
 import re
 class Webots():
-    def __init__(self, gui=False):
-        self.name = "webots" + ("_gui" if gui else "")
-        self.timeout = 900 # 15 minute
+    def __init__(self, gui=False, throw = False):
+        self.name = "webots" +("_throw" if throw else "") + ("_gui" if gui else "")
+        self.timeout = 900 if not throw else 600
         self.commands = [
-            f"ros2 launch webots_driver stack_cubes.launch.py gui:={str(gui).lower()}"
+            f"ros2 launch webots_driver {'throw' if throw else 'stack'}_cubes.launch.py gui:={str(gui).lower()}"
         ]
         self.delays = [5] #added the timer delay from launch file + 10 s for robot movement
 
@@ -162,7 +162,7 @@ def run(sim, idx, path):
                 if "Task finished executing in" in text: 
                     end_time = [int(s) for s in re.findall(r'\b\d+\b', text)][-1]
                     log(out, f"Completed for {idx}: Total execution time {(time.time()-start_time)*1000:.0f} ms. Task started {start_exec_time*1000:.0f} ms after start and took {end_time} ms")
-                if "cubes placed correctly" in text:
+                if "cubes placed correctly" in text or "cubes moved out" in text:
                     log(out, text.split(":")[-1])
                     signal.alarm(0) 
                     kill_proc_tree(pids, procs, interrupt_event)
@@ -183,10 +183,12 @@ def main(args=None):
                         help='Allow to start the simulation at a different index then 1')
     parser.add_argument('--headless', action='store_true',
                         help='Whetever to render to a GUI or not')
+    parser.add_argument('-t', '--throw', action='store_true',
+                        help='If enabled run the throw simulation')
 
     args = parser.parse_args()
     gui = True if not args.headless else False
-    sim = Webots(gui)
+    sim = Webots(gui, args.throw)
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(dir_path, "..")
