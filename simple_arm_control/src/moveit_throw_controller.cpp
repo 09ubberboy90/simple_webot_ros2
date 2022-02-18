@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 
     for (const auto& imap : collision_objects)
     {
-        if (!check_object_pose(&collision_objects[imap.first].primitive_poses[0], &poses[imap.first].primitive_poses[0]))
+        if (!check_object_pose(&collision_objects[imap.first].primitive_poses[0], &poses[imap.first].primitive_poses[0]) && imap.first.compare("target") != 0)
         {
             moved += 1;
         }

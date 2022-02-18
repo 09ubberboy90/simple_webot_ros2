@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=nvidia/cudagl:11.0-devel-ubuntu20.04
+ARG BASE_IMAGE=cyberbotics/webots:R2022a-ubuntu20.04
 
 FROM ${BASE_IMAGE} AS base
 
@@ -51,28 +51,9 @@ RUN apt-get install -y python3-rosdep \
     ros-foxy-backward-ros
 
 RUN pip3 install -U pytest pyquaternion
-
-FROM ros2 AS webots
-
-ARG WEBOTS_VERSION=R2021b
-ARG WEBOTS_PACKAGE_PREFIX=
-# Install Webots runtime dependencies
-RUN apt update && rm -rf /var/lib/apt/lists/
-RUN wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh
-RUN chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
-
-# Install X virtual framebuffer to be able to use Webots without GPU and GUI (e.g. CI)
-RUN apt update && apt install --yes xvfb && rm -rf /var/lib/apt/lists/
-
-# Install Webots
-WORKDIR /usr/local
-RUN wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_VERSION/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2
-RUN tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
-
 RUN apt update && apt install -y ros-foxy-webots-ros2
-ENV WEBOTS_HOME /usr/local/webots
-ENV PATH=/usr/local/webots:$PATH
-FROM webots AS sim_comp
+
+FROM ros2 AS sim_comp
 
 RUN sudo rosdep init
 RUN rosdep update
