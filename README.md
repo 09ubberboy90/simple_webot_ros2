@@ -41,7 +41,7 @@ Clone this repository and import submodules. Then install dependencies and build
 # Install pyquaternion
 pip install pyquaternion
 # Clone this repository and the submodules into your favourite ROS 2 workspace
-git clone --recurse-submodules https://github.com/09ubberboy90/simple_webots_ros2.git
+git clone https://github.com/09ubberboy90/simple_webots_ros2.git
 # Install external dependencies via rosdep
 rosdep install -r --from-paths src --ignore-src --rosdistro ${ROS_DISTRO}
 # Build with colcon
