@@ -4,7 +4,7 @@ This repository contains 2 tasks for Webots
 
 ## Stacking Task
 ![Stacking Cube task](https://github.com/09ubberboy90/simple_webot_ros2/blob/bbe24b34e19a651f0feb8c4047790903ab244baa/imgs/Webots_place.png "Stacking Cube task")
-This task involves one Franka Panda robotic arm randomly taking 5cm cubes from a table with 21 cubes arranged in a 7 * 3 grid and stacking them. It will stack them into 3 stacks of 5 cubes. The number of columns and the the heigt can be configured in [moveit_controller.launch.py](https://github.com/09ubberboy90/simple_ignition_ros2/blob/a59ab173732613deca22c6ee2fb0c64cf43ecc09/simple_arm/launch/moveit_controller.launch.py#L63)
+This task involves one Franka Panda robotic arm randomly taking 5cm cubes from a table with 21 cubes arranged in a 7 * 3 grid and stacking them. It will stack them into 3 stacks of 5 cubes. The number of columns and the the heigt can be configured in [moveit_controller.launch.py](https://github.com/09ubberboy90/simple_webot_ros2/blob/95328d5e462bfe8dfb59bc73c4bbcc0f8c7df4da/webots_driver/launch/moveit_controller.launch.py#L60)
 
 ## Throw Task
 ![Throw Task](https://github.com/09ubberboy90/simple_webot_ros2/blob/bbe24b34e19a651f0feb8c4047790903ab244baa/imgs/Webots_throw.png "Throw Task ")
